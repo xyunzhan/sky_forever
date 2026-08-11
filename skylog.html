@@ -156,21 +156,24 @@ body[data-mood="night"] .sky-stars{opacity:.4}
 @keyframes cellPopIn{from{opacity:0;transform:scale(.7);filter:blur(6px)}to{opacity:1;transform:scale(1);filter:none}}
 .wrap{max-width:1200px;margin:0 auto;padding:clamp(24px,4vw,48px) clamp(16px,4vw,40px) 140px}
 
-/* —— 首页大标题 · 与 index.html 同款衬线渐变色 —— */
+/* —— 首页大标题 · 古典衬线 · 清透高级感 —— */
 .hero{text-align:center;margin-bottom:50px;animation:fadeIn 1s ease both}
 .hero h1{
-  font-family:var(--serif);font-weight:400;
-  font-size:clamp(34px,5vw,56px);line-height:1.12;letter-spacing:-.01em;
+  font-family:'Noto Serif SC','Songti SC','STSong',serif;font-weight:300;
+  font-size:clamp(30px,4.5vw,50px);line-height:1.2;letter-spacing:.15em;
   color:var(--ink);
-  margin-bottom:14px;
+  margin-bottom:24px;
 }
-.hero h1 em{font-style:italic;color:var(--ink-soft);font-weight:300}
+.hero h1 em{font-style:italic;color:var(--ink-soft);font-weight:300;letter-spacing:.15em}
 .hero .tagline{
-  font-family:var(--serif);font-style:italic;color:var(--ink-soft);
-  font-size:clamp(14px,1.8vw,17px);letter-spacing:.02em;
-  max-width:560px;margin:0 auto;
+  font-family:'Noto Serif SC','Songti SC','STSong',serif;font-weight:300;
+  color:var(--ink-faint);
+  font-size:clamp(14px,1.6vw,16px);letter-spacing:.04em;
+  line-height:1.8;
+  max-width:620px;margin:0 auto;
 }
-.hero .meta{font-family:var(--serif);font-style:italic;color:var(--ink-faint);font-size:13px;margin-top:14px}
+.hero .tagline .line2{display:block;margin-top:6px}
+.hero .meta{font-family:var(--serif);font-style:italic;color:var(--ink-faint);font-size:13px;margin-top:20px}
 
 /* —— 随机平流层偶遇卡片 —— */
 .strato{margin:30px 0 50px}
@@ -178,6 +181,10 @@ body[data-mood="night"] .sky-stars{opacity:.4}
 .strato-head h2{font-family:var(--serif);font-weight:400;font-size:clamp(22px,3vw,30px)}
 .strato-head h2 em{font-style:italic;color:var(--ink-soft);font-weight:300}
 .strato-actions{display:flex;gap:10px;flex-wrap:wrap}
+.strato-mode-tabs{display:flex;gap:4px;background:var(--glass);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:30px;padding:3px;border:1px solid var(--line-soft)}
+.mode-tab{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--ink-faint);cursor:pointer;padding:7px 18px;border-radius:30px;transition:all .35s ease;border:none;background:none;letter-spacing:.05em}
+.mode-tab:hover{color:var(--ink-soft)}
+.mode-tab.active{color:var(--ink);background:rgba(255,255,255,.55);box-shadow:0 1px 4px rgba(61,74,92,.06)}
 .btn{
   font-family:var(--sans);font-size:13.5px;font-weight:500;cursor:pointer;
   padding:10px 20px;border-radius:30px;border:1px solid var(--line);
@@ -437,8 +444,8 @@ footer em{display:block;margin-top:6px;font-size:10.5px;letter-spacing:.12em}
   <div class="nav-actions">
     <div class="nav-tabs">
       <button class="nav-tab active" data-view="strato" onclick="go('strato')">平流层</button>
-      <button class="nav-tab" data-view="calendar" onclick="go('calendar')">天空日历</button>
-      <button class="nav-tab" data-view="gallery" onclick="go('gallery')">我的图册</button>
+      <button class="nav-tab" data-view="calendar" onclick="go('calendar')">岁月晴雨表</button>
+      <button class="nav-tab" data-view="gallery" onclick="go('gallery')">我的仰望</button>
     </div>
     <div class="nav-identity" id="navIdentity" onclick="openSettings()" title="点击设置你的身份">
       <div class="identity-av" id="identityAv">?</div>
@@ -457,15 +464,21 @@ footer em{display:block;margin-top:6px;font-size:10.5px;letter-spacing:.12em}
   <div class="wrap">
     <div class="hero">
       <h1>这片天空<em>比我更长久</em></h1>
-      <div class="tagline">只记录刹那被留存的天空与真实感受</div>
+      <div class="tagline">
+        <span class="line1">我只知道，这片天空比我更长久。</span>
+        <span class="line2">如果不把那些在我死后仍继续存在的东西叫作永恒，我又该把什么称为永恒呢？</span>
+      </div>
       <div class="meta" id="heroMeta">你的天空图册 · 完全保存在你的浏览器里</div>
     </div>
 
     <div class="strato">
       <div class="strato-head">
-        <h2>随机平流层 <em>· 偶遇模式</em></h2>
+        <div class="strato-mode-tabs">
+          <button class="mode-tab active" id="tabEncounter" onclick="switchStratoMode('encounter')">邂逅</button>
+          <button class="mode-tab" id="tabRetrace" onclick="switchStratoMode('retrace')">回溯</button>
+        </div>
         <div class="strato-actions">
-          <button class="btn" onclick="roam()">☁ 漫游平流层</button>
+          <button class="btn" id="roamBtn" onclick="stratoNext()">☁ 漫游平流层</button>
           <button class="btn btn-primary" onclick="exportPoster()">✦ 导出海报</button>
         </div>
       </div>
@@ -478,7 +491,7 @@ footer em{display:block;margin-top:6px;font-size:10.5px;letter-spacing:.12em}
 <section class="view" id="view-calendar">
   <div class="wrap">
     <div class="cal-head">
-      <h2 id="calTitle">天空日历 <em>· 2026</em></h2>
+      <h2 id="calTitle">岁月晴雨表 <em>· 2026</em></h2>
       <div class="cal-nav">
         <button class="icon-btn" onclick="prevMonth()">‹</button>
         <div class="year-switch" id="calSwitch">2026 · 三月</div>
@@ -1196,8 +1209,47 @@ function toast(msg){
 }
 
 /* ============================================================
- * 随机平流层 · 偶遇模式
+ * 平流层 · 邂逅 / 回溯 双模式
  * ============================================================ */
+let stratoMode = 'encounter';      // 'encounter'（随机）或 'retrace'（按时间顺序）
+let retraceIndex = 0;              // 回溯模式的当前位置
+let retraceDir = 'desc';           // 'desc'（倒序）或 'asc'（正序）
+
+function switchStratoMode(mode){
+  stratoMode = mode;
+  document.getElementById('tabEncounter').classList.toggle('active', mode==='encounter');
+  document.getElementById('tabRetrace').classList.toggle('active', mode==='retrace');
+  const btn = document.getElementById('roamBtn');
+  if(mode === 'encounter'){
+    btn.textContent = '☁ 漫游平流层';
+    roam();
+  } else {
+    // 回溯模式：默认按时间倒序，从最新开始
+    retraceDir = 'desc';
+    retraceIndex = 0;
+    btn.textContent = '↻ 翻向下一片';
+    stratoNext();
+  }
+  __log('平流层','模式切换 → '+mode);
+}
+
+function stratoNext(){
+  if(stratoMode === 'encounter'){
+    roam();
+  } else {
+    // 回溯：按时间排序浏览
+    if(allMoments.length === 0){ renderEncounter(null); return; }
+    const sorted = [...allMoments].sort((a,b) => {
+      const ta = new Date(a.time).getTime(), tb = new Date(b.time).getTime();
+      return retraceDir === 'desc' ? tb - ta : ta - tb;
+    });
+    retraceIndex = (retraceIndex + 1) % sorted.length;
+    currentEncounter = sorted[retraceIndex];
+    renderEncounter(currentEncounter);
+    __log('平流层','回溯', { index:retraceIndex, dir:retraceDir, id:currentEncounter?.id });
+  }
+}
+
 function roam(){
   if(allMoments.length === 0){
     renderEncounter(null);
@@ -1208,7 +1260,7 @@ function roam(){
   while(allMoments.length>1 && currentEncounter && next.id===currentEncounter.id);
   currentEncounter = next;
   renderEncounter(currentEncounter);
-  __log('平流层','偶遇', currentEncounter?.id);
+  __log('平流层','邂逅', currentEncounter?.id);
 }
 
 function renderEncounter(m){
@@ -1230,14 +1282,20 @@ function renderEncounter(m){
   } else {
     media = `<div class="placeholder">— 纯文字的天空 —</div>`;
   }
-  box.innerHTML = `
-    <div class="encounter-media">${media}</div>
-    <div class="encounter-body">
-      <div class="encounter-mode"><span class="dot"></span>${modeLabels[m.mode]||'未知时刻'}</div>
-      <div class="encounter-when">${formatTime(m.time)}</div>
-      <div class="encounter-loc">— ${m.location||'天空之上'}</div>
-      <div class="encounter-text ${m.type==='essay'?'essay':''}">${(m.text||'（这一刻的天空，没说什么，只是被记下了。）').replace(/</g,'&lt;')}</div>
-    </div>`;
+  // 淡出 → 替换内容 → 淡入
+  box.style.transition = 'opacity .3s ease';
+  box.style.opacity = '0';
+  setTimeout(() => {
+    box.innerHTML = `
+      <div class="encounter-media">${media}</div>
+      <div class="encounter-body">
+        <div class="encounter-mode"><span class="dot"></span>${modeLabels[m.mode]||'未知时刻'}</div>
+        <div class="encounter-when">${formatTime(m.time)}</div>
+        <div class="encounter-loc">— ${m.location||'天空之上'}</div>
+        <div class="encounter-text ${m.type==='essay'?'essay':''}">${(m.text||'（这一刻的天空，没说什么，只是被记下了。）').replace(/</g,'&lt;')}</div>
+      </div>`;
+    box.style.opacity = '1';
+  }, 300);
 }
 
 /* ============================================================
@@ -1444,7 +1502,7 @@ function confirmDelete(id){
 const monthNames = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
 
 function renderCalendar(){
-  document.getElementById('calTitle').innerHTML = `天空日历 <em>· ${calYear}</em>`;
+  document.getElementById('calTitle').innerHTML = `岁月晴雨表 <em>· ${calYear}</em>`;
   document.getElementById('calSwitch').textContent = `${calYear} · ${monthNames[calMonth]}`;
   // 该月所有 moments
   const monthItems = allMoments.filter(m => {
