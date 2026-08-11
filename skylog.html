@@ -142,7 +142,7 @@ body[data-mood="night"] .sky-stars{opacity:.4}
 .view.active{display:block}
 .view.leaving{display:block;animation:viewOut .45s cubic-bezier(.4,0,.2,1) forwards}
 /* 平流层大卡片飞出缩小（像云朵融入对应日期格） */
-.view.leaving #encounter{animation:encounterFlyOut .55s cubic-bezier(.6,0,.3,1) forwards}
+.view.leaving #cardStream{animation:encounterFlyOut .55s cubic-bezier(.6,0,.3,1) forwards}
 @keyframes viewIn{from{opacity:0;transform:translateY(16px) scale(.98);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
 @keyframes viewOut{from{opacity:1}to{opacity:0;transform:translateY(-10px) scale(1.02);filter:blur(6px)}}
 @keyframes encounterFlyOut{
@@ -181,10 +181,6 @@ body[data-mood="night"] .sky-stars{opacity:.4}
 .strato-head h2{font-family:var(--serif);font-weight:400;font-size:clamp(22px,3vw,30px)}
 .strato-head h2 em{font-style:italic;color:var(--ink-soft);font-weight:300}
 .strato-actions{display:flex;gap:10px;flex-wrap:wrap}
-.strato-mode-tabs{display:flex;gap:4px;background:var(--glass);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:30px;padding:3px;border:1px solid var(--line-soft)}
-.mode-tab{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--ink-faint);cursor:pointer;padding:7px 18px;border-radius:30px;transition:all .35s ease;border:none;background:none;letter-spacing:.05em}
-.mode-tab:hover{color:var(--ink-soft)}
-.mode-tab.active{color:var(--ink);background:rgba(255,255,255,.55);box-shadow:0 1px 4px rgba(61,74,92,.06)}
 .btn{
   font-family:var(--sans);font-size:13.5px;font-weight:500;cursor:pointer;
   padding:10px 20px;border-radius:30px;border:1px solid var(--line);
@@ -237,6 +233,53 @@ body[data-mood="night"] .btn-primary{background:linear-gradient(135deg,#a8a0c8 0
 .encounter-empty .ico{font-size:40px;opacity:.4;margin-bottom:14px}
 .encounter-empty h3{font-family:var(--serif);font-weight:400;font-size:22px;margin-bottom:8px;color:var(--ink)}
 .encounter-empty p{font-family:var(--serif);font-style:italic;color:var(--ink-faint);font-size:14px;max-width:420px;margin:0 auto}
+
+/* —— Card Stream · 主页多条小栏 —— */
+.card-stream{display:flex;flex-direction:column;gap:18px;margin-top:10px}
+.stream-card{
+  display:grid;grid-template-columns:200px 1fr;gap:0;
+  border-radius:var(--r-lg);overflow:hidden;
+  background:var(--glass);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  border:1px solid var(--line-soft);
+  box-shadow:var(--sh-soft);
+  transition:.4s;cursor:pointer;
+  animation:streamIn .6s cubic-bezier(.2,.8,.3,1) both;
+}
+.stream-card:hover{box-shadow:var(--sh-lift);transform:translateY(-2px)}
+@keyframes streamIn{from{opacity:0;transform:translateY(20px);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
+.stream-card:nth-child(1){animation-delay:0ms}
+.stream-card:nth-child(2){animation-delay:60ms}
+.stream-card:nth-child(3){animation-delay:120ms}
+.stream-card:nth-child(4){animation-delay:180ms}
+.stream-card:nth-child(5){animation-delay:240ms}
+@media(max-width:680px){.stream-card{grid-template-columns:120px 1fr}}
+.sc-media{
+  position:relative;min-height:160px;overflow:hidden;
+  background:linear-gradient(135deg,var(--sky-2),var(--sky-3));
+}
+.sc-media img,.sc-media video{width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0}
+.sc-media .sc-placeholder{
+  position:absolute;inset:0;display:grid;place-items:center;
+  font-family:var(--serif);font-style:italic;color:var(--ink-faint);font-size:13px;
+  background:linear-gradient(160deg,var(--sky-2),var(--sky-3));
+}
+.sc-body{padding:clamp(16px,2.5vw,26px);display:flex;flex-direction:column;justify-content:center;gap:6px}
+.sc-cat{font-family:var(--serif);font-style:italic;font-size:11px;color:var(--ink-faint);letter-spacing:.08em;text-transform:uppercase}
+.sc-when{font-family:var(--serif);font-style:italic;color:var(--gold);font-size:13px}
+.sc-text{
+  font-family:'Noto Serif SC','Songti SC',serif;font-weight:300;
+  font-size:clamp(14px,1.8vw,16px);line-height:1.7;color:var(--ink);
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+}
+.sc-loc{font-family:var(--serif);font-style:italic;color:var(--ink-faint);font-size:12px;margin-top:2px}
+.sc-empty{
+  padding:80px 30px;text-align:center;
+  background:var(--glass);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  border-radius:var(--r-lg);border:1px solid var(--line-soft);
+}
+.sc-empty .ico{font-size:40px;opacity:.4;margin-bottom:14px}
+.sc-empty h3{font-family:var(--serif);font-weight:300;font-size:22px;margin-bottom:8px;color:var(--ink);letter-spacing:.1em}
+.sc-empty p{font-family:var(--serif);font-style:italic;color:var(--ink-faint);font-size:14px;max-width:420px;margin:0 auto}
 
 /* —— 我的图册网格 —— */
 .gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
@@ -459,7 +502,7 @@ footer em{display:block;margin-top:6px;font-size:10.5px;letter-spacing:.12em}
   </div>
 </nav>
 
-<!-- ============ 视图：随机平流层 ============ -->
+<!-- ============ 视图：平流层（Card Stream） ============ -->
 <section class="view active" id="view-strato">
   <div class="wrap">
     <div class="hero">
@@ -471,19 +514,7 @@ footer em{display:block;margin-top:6px;font-size:10.5px;letter-spacing:.12em}
       <div class="meta" id="heroMeta">你的天空图册 · 完全保存在你的浏览器里</div>
     </div>
 
-    <div class="strato">
-      <div class="strato-head">
-        <div class="strato-mode-tabs">
-          <button class="mode-tab active" id="tabEncounter" onclick="switchStratoMode('encounter')">邂逅</button>
-          <button class="mode-tab" id="tabRetrace" onclick="switchStratoMode('retrace')">回溯</button>
-        </div>
-        <div class="strato-actions">
-          <button class="btn" id="roamBtn" onclick="stratoNext()">☁ 漫游平流层</button>
-          <button class="btn btn-primary" onclick="exportPoster()">✦ 导出海报</button>
-        </div>
-      </div>
-      <div class="encounter" id="encounter"></div>
-    </div>
+    <div class="card-stream" id="cardStream"></div>
   </div>
 </section>
 
@@ -539,13 +570,13 @@ footer em{display:block;margin-top:6px;font-size:10.5px;letter-spacing:.12em}
 <div class="modal-bg" id="publishModal">
   <div class="modal">
     <div class="modal-head">
-      <div class="modal-title" id="publishTitle">闪念捕捉<em>— 像寄出一张即时的明信片</em></div>
+      <div class="modal-title" id="publishTitle">邂逅<em>— 像寄出一张即时的明信片</em></div>
       <button class="modal-close" onclick="closePublish()">×</button>
     </div>
     <div class="modal-body">
       <div class="mode-tabs">
-        <button class="active" onclick="switchMode('flash',this)">闪念捕捉</button>
-        <button onclick="switchMode('memory',this)">回忆整理</button>
+        <button class="active" onclick="switchMode('flash',this)">邂逅</button>
+        <button onclick="switchMode('memory',this)">回溯</button>
       </div>
 
       <!-- 闪念模式 -->
@@ -950,7 +981,7 @@ async function clearAllMoments(){
     closeSettings();
     toast('所有天空都已飘走。图册重新开始。');
     updateHeroMeta();
-    roam();
+    renderCardStream();
     renderGallery();
     renderCalendar();
   }catch(e){
@@ -1044,7 +1075,7 @@ function downloadWebpage(){
   try{
     const clone = document.documentElement.cloneNode(true);
     // 清空所有动态渲染区，避免把当前用户的数据带到朋友的文件里
-    const cleanIds = ['encounter','galleryGrid','calGrid','detailBody','heroMeta','galleryCount','ratioBar','ratioVals','identityAv','identityName','settingsCount','shareUrl','setName','setAvatar','flashTime','flashLoc','flashText','memDate','memBody1','memBody2','memLoc'];
+    const cleanIds = ['cardStream','galleryGrid','calGrid','detailBody','heroMeta','galleryCount','ratioBar','ratioVals','identityAv','identityName','settingsCount','shareUrl','setName','setAvatar','flashTime','flashLoc','flashText','memDate','memBody1','memBody2','memLoc'];
     cleanIds.forEach(id => {
       const el = clone.querySelector('#'+id);
       if(!el) return;
@@ -1129,7 +1160,7 @@ async function init(){
       }, 600);
     }
     updateHeroMeta();
-    roam();
+    renderCardStream();
     renderGallery();
     renderCalendar();
   }catch(e){
@@ -1174,7 +1205,7 @@ function go(view){
     t.classList.add('active');
     document.querySelectorAll('.nav-tab').forEach(b => b.classList.toggle('active', b.dataset.view===view));
     window.scrollTo({top:0, behavior:'smooth'});
-    if(view==='strato' && !currentEncounter) roam();
+    if(view==='strato') renderCardStream();
     if(view==='gallery') renderGallery();
     if(view==='calendar') {
       renderCalendar();
@@ -1209,93 +1240,55 @@ function toast(msg){
 }
 
 /* ============================================================
- * 平流层 · 邂逅 / 回溯 双模式
+ * 平流层 · Card Stream 主页
  * ============================================================ */
-let stratoMode = 'encounter';      // 'encounter'（随机）或 'retrace'（按时间顺序）
-let retraceIndex = 0;              // 回溯模式的当前位置
-let retraceDir = 'desc';           // 'desc'（倒序）或 'asc'（正序）
-
-function switchStratoMode(mode){
-  stratoMode = mode;
-  document.getElementById('tabEncounter').classList.toggle('active', mode==='encounter');
-  document.getElementById('tabRetrace').classList.toggle('active', mode==='retrace');
-  const btn = document.getElementById('roamBtn');
-  if(mode === 'encounter'){
-    btn.textContent = '☁ 漫游平流层';
-    roam();
-  } else {
-    // 回溯模式：默认按时间倒序，从最新开始
-    retraceDir = 'desc';
-    retraceIndex = 0;
-    btn.textContent = '↻ 翻向下一片';
-    stratoNext();
-  }
-  __log('平流层','模式切换 → '+mode);
-}
-
-function stratoNext(){
-  if(stratoMode === 'encounter'){
-    roam();
-  } else {
-    // 回溯：按时间排序浏览
-    if(allMoments.length === 0){ renderEncounter(null); return; }
-    const sorted = [...allMoments].sort((a,b) => {
-      const ta = new Date(a.time).getTime(), tb = new Date(b.time).getTime();
-      return retraceDir === 'desc' ? tb - ta : ta - tb;
-    });
-    retraceIndex = (retraceIndex + 1) % sorted.length;
-    currentEncounter = sorted[retraceIndex];
-    renderEncounter(currentEncounter);
-    __log('平流层','回溯', { index:retraceIndex, dir:retraceDir, id:currentEncounter?.id });
-  }
-}
-
-function roam(){
+function renderCardStream(){
+  const box = document.getElementById('cardStream');
+  if(!box) return;
   if(allMoments.length === 0){
-    renderEncounter(null);
-    return;
-  }
-  let next;
-  do { next = allMoments[Math.floor(Math.random()*allMoments.length)]; }
-  while(allMoments.length>1 && currentEncounter && next.id===currentEncounter.id);
-  currentEncounter = next;
-  renderEncounter(currentEncounter);
-  __log('平流层','邂逅', currentEncounter?.id);
-}
-
-function renderEncounter(m){
-  const box = document.getElementById('encounter');
-  if(!m){
     box.innerHTML = `
-      <div class="encounter-empty">
+      <div class="sc-empty">
         <div class="ico">☁</div>
         <h3>平流层还很空</h3>
         <p>按下右下角的相机，把你抬头看见的那片天空放进来。它会比你更长久地停在这里。</p>
       </div>`;
     return;
   }
-  let media = '';
-  if(m.type === 'image'){
-    media = `<img src="${m.media}" alt="天空" oncontextmenu="return false" draggable="false">`;
-  } else if(m.type === 'video'){
-    media = `<video src="${m.media}" class="ev-video" muted loop autoplay playsinline oncontextmenu="return false" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;display:block"></video>`;
-  } else {
-    media = `<div class="placeholder">— 纯文字的天空 —</div>`;
-  }
-  // 淡出 → 替换内容 → 淡入
-  box.style.transition = 'opacity .3s ease';
-  box.style.opacity = '0';
-  setTimeout(() => {
-    box.innerHTML = `
-      <div class="encounter-media">${media}</div>
-      <div class="encounter-body">
-        <div class="encounter-mode"><span class="dot"></span>${modeLabels[m.mode]||'未知时刻'}</div>
-        <div class="encounter-when">${formatTime(m.time)}</div>
-        <div class="encounter-loc">— ${m.location||'天空之上'}</div>
-        <div class="encounter-text ${m.type==='essay'?'essay':''}">${(m.text||'（这一刻的天空，没说什么，只是被记下了。）').replace(/</g,'&lt;')}</div>
+  // 按 createdAt 倒序（最新上传的靠前），最多 5 条
+  const sorted = [...allMoments].sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+  const top5 = sorted.slice(0, 5);
+  box.innerHTML = top5.map(m => {
+    let mediaHtml = '';
+    if(m.type === 'image'){
+      mediaHtml = `<img src="${m.media}" alt="" oncontextmenu="return false" draggable="false">`;
+    } else if(m.type === 'video'){
+      mediaHtml = `<video src="${m.media}" muted loop playsinline oncontextmenu="return false" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0"></video>`;
+    } else {
+      mediaHtml = `<div class="sc-placeholder">— 纯文字 —</div>`;
+    }
+    const catLabel = m.category === 'retrace' ? '回溯' : '邂逅';
+    const textDisplay = (m.text || '（这一刻的天空，没说什么，只是被记下了。）').replace(/</g,'&lt;');
+    return `
+      <div class="stream-card" onclick="showDetail('${m.id}')">
+        <div class="sc-media">${mediaHtml}</div>
+        <div class="sc-body">
+          <div class="sc-cat">${catLabel} · ${modeLabels[m.mode]||''}</div>
+          <div class="sc-when">${formatTimeShort(m.time)}</div>
+          <div class="sc-text">${textDisplay}</div>
+          <div class="sc-loc">— ${m.location||'天空之上'}</div>
+        </div>
       </div>`;
-    box.style.opacity = '1';
-  }, 300);
+  }).join('');
+  __log('平流层','Card Stream 渲染', { count: top5.length });
+}
+
+/* 保留 roam() 供内部调用（exportPoster 需要 currentEncounter） */
+function roam(){
+  if(allMoments.length === 0){ currentEncounter = null; return; }
+  let next;
+  do { next = allMoments[Math.floor(Math.random()*allMoments.length)]; }
+  while(allMoments.length>1 && currentEncounter && next.id===currentEncounter.id);
+  currentEncounter = next;
 }
 
 /* ============================================================
@@ -1305,7 +1298,7 @@ function openPublish(){
   // 自动填入当前时间
   const now = new Date();
   document.getElementById('flashTime').value = formatTime(now.toISOString());
-  document.getElementById('publishTitle').innerHTML = '闪念捕捉<em>— 像寄出一张即时的明信片</em>';
+  document.getElementById('publishTitle').innerHTML = '邂逅<em>— 像寄出一张即时的明信片</em>';
   switchMode('flash', document.querySelector('.mode-tabs button'));
   document.getElementById('publishModal').classList.add('show');
   __log('发布','打开弹窗');
@@ -1319,8 +1312,8 @@ function switchMode(mode, btn){
   document.getElementById('flashMode').style.display = mode==='flash' ? 'block' : 'none';
   document.getElementById('memoryMode').style.display = mode==='memory' ? 'block' : 'none';
   document.getElementById('publishTitle').innerHTML = mode==='flash'
-    ? '闪念捕捉<em>— 像寄出一张即时的明信片</em>'
-    : '回忆整理<em>— 把那一日的天空，慢慢折成一封信</em>';
+    ? '邂逅<em>— 像寄出一张即时的明信片</em>'
+    : '回溯<em>— 把那一日的天空，慢慢折成一封信</em>';
   __log('发布','模式 → '+mode);
 }
 
@@ -1392,10 +1385,11 @@ async function publish(){
         id: uid(),
         type: pendingMedia ? pendingMedia.type : 'essay',
         media: pendingMedia ? pendingMedia.data : null,
-        text: text || '（这一刻的天空，没说什么，只是被记下了。）',
+        text: text || '',
         time: now.toISOString(),
         location: loc,
         mode: classifyMode(now.getHours()),
+        category: 'encounter',
         createdAt: now.getTime()
       };
     } else {
@@ -1415,10 +1409,11 @@ async function publish(){
         id: uid(),
         type: pendingMemMedia ? pendingMemMedia.type : 'essay',
         media: pendingMemMedia ? pendingMemMedia.data : null,
-        text: combined || '（那一天的天空，被慢慢折成了一封信。）',
+        text: combined || '',
         time: itemTime.toISOString(),
         location: loc,
         mode: classifyMode(itemTime.getHours()),
+        category: 'retrace',
         createdAt: now.getTime()
       };
     }
@@ -1436,7 +1431,7 @@ async function publish(){
     closePublish();
     toast('这片天空，已被妥帖地放进平流层');
     updateHeroMeta();
-    roam();
+    renderCardStream();
     renderGallery();
     renderCalendar();
   }catch(e){
@@ -1467,15 +1462,18 @@ function renderGallery(){
 function showDetail(id){
   const m = allMoments.find(x => x.id===id);
   if(!m) return;
+  currentEncounter = m;
   let media = '';
   if(m.type === 'image') media = `<div class="detail-media"><img src="${m.media}" alt=""></div>`;
   else if(m.type === 'video') media = `<div class="detail-media"><video src="${m.media}" controls playsinline></video></div>`;
+  const catLabel = m.category === 'retrace' ? '回溯' : '邂逅';
   document.getElementById('detailBody').innerHTML = `
     ${media}
     <div class="detail-when">${formatTime(m.time)}</div>
-    <div class="detail-loc">— ${m.location||'天空之上'} · ${modeLabels[m.mode]||''}</div>
+    <div class="detail-loc">— ${m.location||'天空之上'} · ${modeLabels[m.mode]||''} · ${catLabel}</div>
     <div class="detail-text">${(m.text||'').replace(/</g,'&lt;')}</div>
-    <div style="margin-top:20px;display:flex;gap:10px">
+    <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="exportPoster()">✦ 导出海报</button>
       <button class="btn btn-ghost" onclick="confirmDelete('${m.id}')">删除这片天空</button>
       <button class="btn" onclick="closeDetail()">合上</button>
     </div>`;
@@ -1490,7 +1488,7 @@ function confirmDelete(id){
     closeDetail();
     toast('那片天空，已经飘走了');
     updateHeroMeta();
-    roam();
+    renderCardStream();
     renderGallery();
     renderCalendar();
   });
@@ -1623,10 +1621,10 @@ function nextMonth(){
 }
 
 /* ============================================================
- * 导出海报 · Canvas 渲染
+ * 导出海报 · 全图背景 + 下1/3毛玻璃
  * ============================================================ */
 async function exportPoster(){
-  if(!currentEncounter){ toast('先漫游到一片天空吧'); return; }
+  if(!currentEncounter){ toast('先选一片天空吧'); return; }
   const m = currentEncounter;
   toast('正在渲染海报……');
   try{
@@ -1634,225 +1632,119 @@ async function exportPoster(){
     const ctx = canvas.getContext('2d');
     const W = 1080, H = 1350;
     canvas.width = W; canvas.height = H;
-    // 背景：纸白天蓝渐变（匹配首页白昼基调）
-    const bg = ctx.createLinearGradient(0,0,0,H);
-    bg.addColorStop(0,'#fbfdff');
-    bg.addColorStop(0.45,'#cfe6f5');
-    bg.addColorStop(1,'#a8d5f0');
-    ctx.fillStyle = bg;
-    ctx.fillRect(0,0,W,H);
-    // 地平线暖光
-    const horizon = ctx.createRadialGradient(W/2, H*1.1, 50, W/2, H*1.1, H*0.7);
-    horizon.addColorStop(0,'rgba(255,211,166,.55)');
-    horizon.addColorStop(1,'transparent');
-    ctx.fillStyle = horizon;
-    ctx.fillRect(0,0,W,H);
-    // 飘云（柔和）
-    ctx.fillStyle = 'rgba(255,255,255,.5)';
-    for(let i=0;i<6;i++){
-      const cx = (i+0.5)*W/6 + (Math.random()*80-40);
-      const cy = 400 + Math.random()*500;
-      const rx = 140+Math.random()*60, ry = 40+Math.random()*20;
-      ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI*2); ctx.fill();
-    }
-    let y = 100;
-    // 标题
-    ctx.fillStyle = '#2b3340';
-    ctx.font = 'italic 48px "Fraunces", "Noto Serif SC", serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('这片天空比我更长久', W/2, y);
-    y += 38;
-    ctx.fillStyle = '#5a6675';
-    ctx.font = 'italic 18px "Fraunces", serif';
-    ctx.fillText('— a private sky journal —', W/2, y);
-    y += 50;
-    // 媒体
+
+    // —— 获取媒体源（图片或视频首帧） ——
+    let source = null, sw = 0, sh = 0;
     if(m.media && m.type === 'image'){
-      const img = new Image();
-      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = m.media; });
-      const mw = W - 160, mh = 700;
-      const ratio = Math.min(mw/img.width, mh/img.height);
-      const dw = img.width*ratio, dh = img.height*ratio;
-      const dx = (W - dw)/2;
-      ctx.save();
-      roundRect(ctx, dx, y, dw, dh, 16);
-      ctx.clip();
-      ctx.drawImage(img, dx, y, dw, dh);
-      ctx.restore();
-      y += dh + 30;
+      source = new Image();
+      await new Promise((res, rej) => { source.onload = res; source.onerror = rej; source.src = m.media; });
+      sw = source.width; sh = source.height;
     } else if(m.media && m.type === 'video'){
-      // 视频取首帧
-      const video = document.createElement('video');
-      video.src = m.media;
-      video.muted = true;
-      await new Promise(res => { video.onloadeddata = res; video.onerror = res; });
-      try { await video.play(); video.pause(); video.currentTime = 0; } catch(e){}
-      const mw = W - 160, mh = 700;
-      const ratio = Math.min(mw/video.videoWidth, mh/video.videoHeight);
-      const dw = video.videoWidth*ratio, dh = video.videoHeight*ratio;
-      const dx = (W - dw)/2;
-      ctx.save();
-      roundRect(ctx, dx, y, dw, dh, 16);
-      ctx.clip();
-      ctx.drawImage(video, dx, y, dw, dh);
-      ctx.restore();
-      y += dh + 30;
+      source = document.createElement('video');
+      source.src = m.media;
+      source.muted = true;
+      await new Promise(res => { source.onloadeddata = res; source.onerror = res; });
+      try { await source.play(); source.pause(); source.currentTime = 0; } catch(e){}
+      sw = source.videoWidth; sh = source.videoHeight;
+    }
+
+    // —— 1. 绘制全图背景（cover 模式铺满） ——
+    if(source && sw && sh){
+      const ratio = Math.max(W / sw, H / sh);
+      const dw = sw * ratio, dh = sh * ratio;
+      const dx = (W - dw) / 2, dy = (H - dh) / 2;
+      ctx.drawImage(source, dx, dy, dw, dh);
     } else {
-      // 纯文字：留白
-      y += 60;
+      // 纯文字：用晴空渐变兜底
+      const bg = ctx.createLinearGradient(0, 0, 0, H);
+      bg.addColorStop(0, '#dceaf5');
+      bg.addColorStop(0.5, '#b8d8ed');
+      bg.addColorStop(1, '#a8c8e0');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, W, H);
     }
-    // 时刻标签（墨色-柔光）
-    ctx.fillStyle = '#5a6675';
-    ctx.font = 'italic 20px "Fraunces", serif';
-    ctx.fillText(modeMarks[m.mode]+'  '+modeLabels[m.mode], W/2, y);
-    y += 34;
-    // 时间地点（金色暖调）
-    ctx.fillStyle = '#a8824a';
-    ctx.font = '20px "Fraunces", "Noto Serif SC", serif';
-    ctx.fillText(formatTime(m.time), W/2, y);
-    y += 30;
-    ctx.fillStyle = '#8b94a3';
-    ctx.font = 'italic 18px "Fraunces", serif';
-    ctx.fillText('— '+(m.location||'天空之上'), W/2, y);
-    y += 40;
-    // 文案
-    if(m.text){
-      ctx.fillStyle = '#2b3340';
-      ctx.font = '22px "Noto Serif SC", serif';
-      ctx.textAlign = 'left';
-      const lines = wrapText(ctx, m.text, W - 200);
-      lines.forEach(line => { ctx.fillText(line, 100, y); y += 36; });
+
+    // —— 2. 下 1/3 毛玻璃虚化 ——
+    const glassTop = Math.floor(H * 2 / 3);   // 毛玻璃起始 y
+    const glassH = H - glassTop;
+
+    if(source && sw && sh){
+      // 在下 1/3 区域重绘模糊版图片
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, glassTop, W, glassH);
+      ctx.clip();
+      ctx.filter = 'blur(14px)';
+      const ratio = Math.max(W / sw, H / sh);
+      const dw = sw * ratio, dh = sh * ratio;
+      const dx = (W - dw) / 2, dy = (H - dh) / 2;
+      ctx.drawImage(source, dx, dy, dw, dh);
+      ctx.filter = 'none';
+      ctx.restore();
     }
-    // 动态气象矢量印章（右下角）
-    drawWeatherStamp(ctx, m, W, H);
-    // 左上角身份印章（若有）
-    drawIdentityStamp(ctx, W, H);
-    // 底部签名
-    ctx.fillStyle = '#8b94a3';
-    ctx.font = 'italic 14px "Fraunces", serif';
+
+    // 半透明白色蒙层（毛玻璃质感）
+    ctx.fillStyle = 'rgba(255,255,255,0.42)';
+    ctx.fillRect(0, glassTop, W, glassH);
+
+    // 2/3 处柔和过渡渐变（避免硬边）
+    const transH = 80;
+    const transGrad = ctx.createLinearGradient(0, glassTop - transH, 0, glassTop + 20);
+    transGrad.addColorStop(0, 'rgba(255,255,255,0)');
+    transGrad.addColorStop(1, 'rgba(255,255,255,0.42)');
+    ctx.fillStyle = transGrad;
+    ctx.fillRect(0, glassTop - transH, W, transH + 20);
+
+    // —— 3. 主体文字（古典衬线居中） ——
+    const mainText = (m.text && m.text.trim()) ? m.text.trim() : '这片天空比我更长久';
+    ctx.fillStyle = '#3d4a5c';
+    ctx.font = '300 36px "Noto Serif SC", "Songti SC", "STSong", serif';
     ctx.textAlign = 'center';
-    ctx.fillText('no server · no account · only your sky', W/2, H - 40);
-    // 下载
+    ctx.textBaseline = 'middle';
+    // 自动换行
+    const maxTextW = W - 140;
+    const textLines = wrapText(ctx, mainText, maxTextW);
+    let textY = glassTop + glassH * 0.32;
+    textLines.forEach(line => {
+      ctx.fillText(line, W / 2, textY);
+      textY += 50;
+    });
+
+    // —— 4. 底部信息（极细字体） ——
+    const d = new Date(m.time);
+    const pad = n => String(n).padStart(2, '0');
+    const ymd = `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}`;
+    const hm = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    const modeEn = { day:'Daylight', dusk:'Twilight', night:'Midnight' }[m.mode] || 'Daylight';
+    const loc = m.location || '天空之上';
+    const infoLine = `${ymd} ${hm} · ${loc} · ${modeEn}`;
+
+    ctx.fillStyle = 'rgba(61,74,92,0.55)';
+    ctx.font = '300 16px "Fraunces", "Noto Serif SC", serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    // 字间距通过逐字绘制模拟
+    ctx.fillText(infoLine, W / 2, H - 70);
+
+    // 极细分隔线
+    ctx.strokeStyle = 'rgba(61,74,92,0.18)';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(W * 0.25, H - 95);
+    ctx.lineTo(W * 0.75, H - 95);
+    ctx.stroke();
+
+    // —— 下载 ——
     const link = document.createElement('a');
-    link.download = `这片天空_${new Date(m.time).toISOString().slice(0,10)}.png`;
+    link.download = `这片天空_${ymd.replace(/\./g,'')}.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
     toast('海报已保存到下载文件夹');
-    __log('海报','导出成功', m.id);
+    __log('海报','导出成功', { id: m.id, text: mainText.slice(0,20) });
   }catch(e){
     __err('海报','导出失败', e);
     toast('海报导出失败：'+e.message);
   }
-}
-
-/* 动态气象矢量印章 · 右下角 */
-function drawWeatherStamp(ctx, m, W, H){
-  const d = new Date(m.time);
-  const hh = String(d.getHours()).padStart(2,'0');
-  const mm = String(d.getMinutes()).padStart(2,'0');
-  const ampm = d.getHours() >= 12 ? 'PM' : 'AM';
-  const mode = m.mode || 'day';
-  const modeEn = { day:'Daylight', dusk:'Twilight', night:'Midnight' }[mode];
-  const modeIcon = { day:'☀', dusk:'☽', night:'✦' }[mode];
-  const ink = {
-    day:   { line:'#5a88a8', soft:'#8ab4d0', warm:'#e8c088' },
-    dusk:  { line:'#b06848', soft:'#d89068', warm:'#e8a070' },
-    night: { line:'#6a6088', soft:'#9a90b8', warm:'#b8a8d8' }
-  }[mode] || { line:'#5a88a8', soft:'#8ab4d0', warm:'#e8c088' };
-  const pw = 220, ph = 140;
-  const px = W - pw - 70, py = H - ph - 100;
-  ctx.save();
-  ctx.translate(px, py);
-  ctx.lineWidth = .8;
-  ctx.strokeStyle = ink.line;
-  ctx.globalAlpha = .85;
-  // 外框：圆角矩形 + 双线（极细）
-  roundRect(ctx, 0, 0, pw, ph, 8);
-  ctx.stroke();
-  ctx.lineWidth = .4;
-  ctx.strokeStyle = ink.soft;
-  roundRect(ctx, 8, 8, pw-16, ph-16, 5);
-  ctx.stroke();
-  // 四角装饰小圆点
-  ctx.lineWidth = .7; ctx.strokeStyle = ink.line;
-  const ticks = [[4,4],[pw-4,4],[4,ph-4],[pw-4,ph-4]];
-  ticks.forEach(([tx,ty]) => {
-    ctx.beginPath(); ctx.arc(tx, ty, 2.5, 0, Math.PI*2); ctx.stroke();
-  });
-  // 气韵图标（圆形印章）
-  const cx = 40, cy = ph/2, r = 30;
-  ctx.strokeStyle = ink.warm;
-  ctx.lineWidth = .8;
-  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.stroke();
-  ctx.lineWidth = .4;
-  ctx.beginPath(); ctx.arc(cx, cy, r-4, 0, Math.PI*2); ctx.stroke();
-  ctx.fillStyle = ink.line;
-  ctx.globalAlpha = .9;
-  ctx.font = '24px serif';
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText(modeIcon, cx, cy+1);
-  // 时间大字
-  ctx.globalAlpha = .9;
-  ctx.fillStyle = ink.line;
-  ctx.font = 'bold 30px "Fraunces", serif';
-  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-  ctx.fillText(`${hh}:${mm}`, 86, 28);
-  ctx.font = '14px "Fraunces", serif';
-  ctx.fillStyle = ink.soft;
-  ctx.fillText(ampm, 170, 34);
-  // 分隔细线
-  ctx.strokeStyle = ink.soft;
-  ctx.lineWidth = .5;
-  ctx.beginPath();
-  ctx.moveTo(86, 70); ctx.lineTo(pw - 20, 70);
-  ctx.stroke();
-  // 气韵英文标签（极细衬线）
-  ctx.fillStyle = ink.line;
-  ctx.font = 'italic 16px "Fraunces", serif';
-  ctx.fillText(modeEn, 86, 80);
-  // 中文日期
-  const ymd = `${d.getFullYear()} · ${String(d.getMonth()+1).padStart(2,'0')} · ${String(d.getDate()).padStart(2,'0')}`;
-  ctx.fillStyle = ink.soft;
-  ctx.font = '12px "Fraunces", serif';
-  ctx.fillText(ymd, 86, 104);
-  ctx.restore();
-  __log('海报','气象印章', `${hh}:${mm} · ${modeEn}`);
-}
-
-/* 身份印章 · 左上角 */
-function drawIdentityStamp(ctx, W, H){
-  const id = JSON.parse(localStorage.getItem('skylog.identity') || '{}');
-  const letter = (id.letter || '天').slice(0,1);
-  const name = (id.name || '仰望者的天空').slice(0, 10);
-  const px = 70, py = 100;
-  ctx.save();
-  ctx.translate(px, py);
-  // 圆形头像（渐变）
-  const g = ctx.createLinearGradient(0, 0, 36, 36);
-  g.addColorStop(0, '#f0c4b8');
-  g.addColorStop(1, '#b8d8ed');
-  ctx.fillStyle = g;
-  ctx.beginPath(); ctx.arc(18, 18, 18, 0, Math.PI*2); ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,.7)';
-  ctx.lineWidth = 1;
-  ctx.stroke();
-  ctx.fillStyle = '#fff';
-  ctx.font = 'italic 16px "Fraunces", "Noto Serif SC", serif';
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText(letter, 18, 19);
-  // 名字
-  ctx.fillStyle = '#3d4a5c';
-  ctx.font = 'italic 18px "Fraunces", "Noto Serif SC", serif';
-  ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-  ctx.fillText(name, 52, 18);
-  // 下划线（极细）
-  ctx.strokeStyle = 'rgba(61,74,92,.3)';
-  ctx.lineWidth = .5;
-  ctx.beginPath();
-  const w = ctx.measureText(name).width;
-  ctx.moveTo(52, 32); ctx.lineTo(52 + w, 32);
-  ctx.stroke();
-  ctx.restore();
 }
 
 function roundRect(ctx, x, y, w, h, r){
@@ -1942,7 +1834,7 @@ async function importData(event){
     toast(`成功导入 ${added} 片天空`);
     __log('备份','导入', { added, total: allMoments.length });
     updateHeroMeta();
-    roam();
+    renderCardStream();
     renderGallery();
     renderCalendar();
   }catch(e){
