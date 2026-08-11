@@ -195,6 +195,22 @@ body[data-mood="night"] .btn-primary{background:linear-gradient(135deg,#a8a0c8 0
 .btn-primary:hover{transform:translateY(-2px);box-shadow:var(--sh-lift);color:#fff}
 .btn-ghost{background:transparent}
 
+/* —— 平流层分类切换 · 邂逅 / 回溯 —— */
+.strato-tabs{
+  display:flex;gap:4px;background:color-mix(in srgb,var(--paper) 50%,transparent);
+  padding:4px;border-radius:30px;border:1px solid var(--line-soft);
+  margin:0 auto 28px;justify-content:center;width:fit-content;
+}
+.strato-tab{
+  font-family:var(--serif);font-style:italic;font-size:15px;color:var(--ink-soft);cursor:pointer;
+  padding:10px 24px;border-radius:30px;transition:all .35s ease;border:none;background:none;letter-spacing:.06em;
+  display:inline-flex;align-items:center;gap:8px;
+}
+.strato-tab:hover{color:var(--ink);background:color-mix(in srgb,var(--paper) 50%,transparent)}
+.strato-tab.active{color:var(--ink);background:color-mix(in srgb,var(--paper) 80%,transparent);box-shadow:var(--sh-soft)}
+.strato-tab .count{font-family:var(--sans);font-size:11px;color:var(--ink-faint);font-style:normal;background:color-mix(in srgb,var(--sky-1) 40%,transparent);padding:1px 8px;border-radius:10px;min-width:20px;text-align:center}
+.strato-tab.active .count{color:var(--gold);background:color-mix(in srgb,var(--gold) 12%,transparent)}
+
 .encounter{
   position:relative;border-radius:var(--r-lg);overflow:hidden;
   background:var(--glass);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
@@ -512,6 +528,11 @@ footer em{display:block;margin-top:6px;font-size:10.5px;letter-spacing:.12em}
         <span class="line2">如果不把那些在我死后仍继续存在的东西叫作永恒，我又该把什么称为永恒呢？</span>
       </div>
       <div class="meta" id="heroMeta">你的天空图册 · 完全保存在你的浏览器里</div>
+    </div>
+
+    <div class="strato-tabs">
+      <button class="strato-tab active" data-cat="encounter" onclick="switchStratoTab('encounter',this)">邂逅<span class="count" id="encounterCount">0</span></button>
+      <button class="strato-tab" data-cat="retrace" onclick="switchStratoTab('retrace',this)">回溯<span class="count" id="retraceCount">0</span></button>
     </div>
 
     <div class="card-stream" id="cardStream"></div>
@@ -908,6 +929,7 @@ let publishMode = 'flash';    // 'flash' | 'memory'
 let pendingMedia = null;      // { type:'image'|'video', data:base64 }
 let pendingMemMedia = null;
 let calYear, calMonth;        // 日历当前年月
+let currentStratoTab = 'encounter'; // 平流层当前分类：'encounter' | 'retrace'
 
 /* ============================================================
  * 本地身份 · 仅存浏览器，不联网
@@ -1075,7 +1097,7 @@ function downloadWebpage(){
   try{
     const clone = document.documentElement.cloneNode(true);
     // 清空所有动态渲染区，避免把当前用户的数据带到朋友的文件里
-    const cleanIds = ['cardStream','galleryGrid','calGrid','detailBody','heroMeta','galleryCount','ratioBar','ratioVals','identityAv','identityName','settingsCount','shareUrl','setName','setAvatar','flashTime','flashLoc','flashText','memDate','memBody1','memBody2','memLoc'];
+    const cleanIds = ['cardStream','galleryGrid','calGrid','detailBody','heroMeta','galleryCount','encounterCount','retraceCount','ratioBar','ratioVals','identityAv','identityName','settingsCount','shareUrl','setName','setAvatar','flashTime','flashLoc','flashText','memDate','memBody1','memBody2','memLoc'];
     cleanIds.forEach(id => {
       const el = clone.querySelector('#'+id);
       if(!el) return;
@@ -1083,7 +1105,7 @@ function downloadWebpage(){
       else if(id === 'identityAv'){ el.textContent = '?'; }
       else if(id === 'identityName'){ el.textContent = '未命名'; }
       else if(id === 'heroMeta'){ el.textContent = '你的天空图册 · 完全保存在你的浏览器里'; }
-      else if(id === 'galleryCount'){ el.textContent = '0'; }
+      else if(id === 'galleryCount' || id === 'encounterCount' || id === 'retraceCount'){ el.textContent = '0'; }
       else { el.innerHTML = ''; }
     });
     // 移除弹窗 show 状态、表单值、预览
@@ -1245,17 +1267,30 @@ function toast(msg){
 function renderCardStream(){
   const box = document.getElementById('cardStream');
   if(!box) return;
-  if(allMoments.length === 0){
+  // 更新两个分类的计数徽章
+  const encounterCount = allMoments.filter(m => m.category === 'encounter').length;
+  const retraceCount = allMoments.filter(m => m.category === 'retrace').length;
+  const ecEl = document.getElementById('encounterCount');
+  const rcEl = document.getElementById('retraceCount');
+  if(ecEl) ecEl.textContent = encounterCount;
+  if(rcEl) rcEl.textContent = retraceCount;
+  // 按当前分类筛选
+  const filtered = allMoments.filter(m => m.category === currentStratoTab);
+  if(filtered.length === 0){
+    const isEncounter = currentStratoTab === 'encounter';
     box.innerHTML = `
       <div class="sc-empty">
-        <div class="ico">☁</div>
-        <h3>平流层还很空</h3>
-        <p>按下右下角的相机，把你抬头看见的那片天空放进来。它会比你更长久地停在这里。</p>
+        <div class="ico">${isEncounter ? '☁' : '✦'}</div>
+        <h3>${isEncounter ? '还没有邂逅' : '还没有回溯'}</h3>
+        <p>${isEncounter
+          ? '按下右下角的相机，选「邂逅」模式，把你抬头看见的那片天空放进来。'
+          : '按下右下角的相机，选「回溯」模式，把那一日的天空，慢慢折成一封信。'}</p>
       </div>`;
+    __log('平流层','Card Stream 渲染', { cat: currentStratoTab, count: 0 });
     return;
   }
-  // 按 createdAt 倒序（最新上传的靠前），最多 5 条
-  const sorted = [...allMoments].sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+  // 按 createdAt 倒序（最新上传的靠前），最多展示 5 条
+  const sorted = [...filtered].sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
   const top5 = sorted.slice(0, 5);
   box.innerHTML = top5.map(m => {
     let mediaHtml = '';
@@ -1279,7 +1314,16 @@ function renderCardStream(){
         </div>
       </div>`;
   }).join('');
-  __log('平流层','Card Stream 渲染', { count: top5.length });
+  __log('平流层','Card Stream 渲染', { cat: currentStratoTab, count: top5.length });
+}
+
+/* 平流层分类切换：邂逅 / 回溯 */
+function switchStratoTab(cat, btn){
+  currentStratoTab = cat;
+  document.querySelectorAll('.strato-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCardStream();
+  __log('平流层','切换分类 → '+cat);
 }
 
 /* 保留 roam() 供内部调用（exportPoster 需要 currentEncounter） */
