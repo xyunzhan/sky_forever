@@ -1,0 +1,2351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>这片天空比我更长久 · 个人天空日志</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Raleway:wght@300;400;500;600&family=Noto+Serif+SC:wght@400;500&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   这片天空比我更长久 · 个人天空日志
+   纯工具型 Web App · 数据全本地 · 无后端无账号
+   设计系统：清晨天蓝 #F0F9FF 顶部 + 时段色底部渐变 · 字体鼠尾草体系
+   ============================================================ */
+:root{
+  /* —— 主背景：清晨天蓝 #F0F9FF（固定顶部色） —— */
+  --bg-top:#F0F9FF;
+  /* —— 四套子色板：时段底色（用于渐变底部） —— */
+  --dawn-bg:#F5E0D0;    /* 晨曦：暖粉（比顶部深，渐变可见） */
+  --day-bg:#C8DCEB;     /* 白昼：浅钢蓝（比顶部深约 15%，渐变可见） */
+  --dusk-bg:#EDCCB5;    /* 黄昏：橘霞（比顶部深，渐变可见） */
+  --night-bg:#D0CCE0;   /* 星夜：淡薰衣草（比顶部深，渐变可见） */
+
+  /* —— 字体颜色保持鼠尾草体系不变 —— */
+  --bg:#F0F9FF;
+  --bg-elevated:#FAFAF5;
+  --ink:#1F2937;
+  --ink-soft:#374151;
+  --ink-faint:#6B7280;
+  --accent:#6B7280;
+  --accent-soft:#9CA3AF;
+  --paper:rgba(255,255,255,.55); --paper-warm:rgba(255,253,248,.55);
+  --glass:rgba(255,255,255,.4);
+  --line:rgba(31,41,55,.1); --line-soft:rgba(31,41,55,.06);
+  --gold:#6B7280;
+  --gold-ink:#374151;
+
+  /* 旧变量别名 */
+  --sky-1:#F0F9FF;
+  --sky-2:#EDEDE5;
+  --sky-3:#D1D5DB;
+  --horizon:#FAFAF5;
+  --dawn-2:#E5E7EB;
+  --dusk-3:#9CA3AF;
+
+  --serif:'Lora','Noto Serif SC',Georgia,serif;
+  --sans:'Raleway','Noto Sans SC',system-ui,sans-serif;
+  --hand:'Ma Shan Zheng','楷体',cursive;
+  --r-lg:22px; --r-md:16px; --r-sm:11px;
+  --sh-soft:0 1px 3px rgba(31,41,55,.04),0 8px 32px rgba(31,41,55,.06);
+  --sh-lift:0 4px 12px rgba(31,41,55,.06),0 20px 60px rgba(31,41,55,.1);
+  --glass-blur:blur(16px) saturate(1.3);
+}
+
+/* —— 时段切换：body 背景渐变（顶部 #F0F9FF → 底部 时段色） —— */
+body{background:linear-gradient(180deg, var(--bg-top) 0%, var(--bg-top) 30%, var(--day-bg) 100%)}
+body[data-mood="dawn"]{background:linear-gradient(180deg, var(--bg-top) 0%, var(--bg-top) 30%, var(--dawn-bg) 100%)}
+body[data-mood="dusk"]{background:linear-gradient(180deg, var(--bg-top) 0%, var(--bg-top) 30%, var(--dusk-bg) 100%)}
+body[data-mood="night"]{background:linear-gradient(180deg, var(--bg-top) 0%, var(--bg-top) 30%, var(--night-bg) 100%)}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--sans);
+  color:var(--ink);
+  transition:background 1.6s ease;
+  height:100vh;
+  font-size:15px;
+  line-height:1.7;
+  letter-spacing:.005em;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+  overflow:hidden;
+  position:relative;
+}
+/* 平流层：锁定一页不滚动；其他视图允许滚动翻页 */
+body:has(#view-calendar.active),
+body:has(#view-gallery.active),
+body:has(#view-catdetail.active){overflow-y:auto;height:auto;min-height:100vh}
+
+/* —— 静态纯色背景（鼠尾草暖白） —— */
+/* 所有动态背景层已停用：sky-atmos 渐变 / ambient-glow 光晕 / cloud 云朵 / sky-stars 星点 / sky-grain 噪点 */
+.sky-atmos,.ambient-glow,.cloud,.sky-stars,.sky-grain,.sky-bg,.nebula{display:none}
+
+/* —— 顶部导航 · 轻盈玻璃拟态 —— */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:60;
+  display:flex;align-items:center;justify-content:center;
+  padding:18px clamp(20px,4vw,52px);
+  background:transparent;
+  border-bottom:none;
+  pointer-events:none;
+}
+.nav > *{pointer-events:auto}
+.nav-center{
+  display:flex;gap:4px;
+  background:color-mix(in srgb,var(--paper) 45%,transparent);
+  backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);
+  padding:5px;border-radius:40px;border:1px solid var(--line-soft);
+  box-shadow:var(--sh-soft);
+}
+.nav-right{position:absolute;right:clamp(20px,4vw,52px);display:flex;gap:6px;align-items:center}
+.nav-tab{
+  font-family:var(--hand);font-weight:400;font-size:17px;
+  color:var(--ink-soft);cursor:pointer;
+  padding:10px 24px;border-radius:40px;transition:all .35s ease;border:none;background:none;letter-spacing:.08em;
+}
+.nav-tab:hover{color:var(--ink);background:rgba(31,41,55,.06)}
+.nav-tab.active{
+  color:#fff;background:#4B5563;
+  box-shadow:0 2px 10px rgba(31,41,55,.25);
+  letter-spacing:.12em;
+}
+.icon-btn{
+  width:36px;height:36px;border-radius:50%;border:1px solid var(--line);
+  background:var(--paper);backdrop-filter:blur(10px);
+  color:var(--ink-soft);cursor:pointer;
+  display:grid;place-items:center;font-size:15px;transition:.3s;
+}
+.icon-btn:hover{color:var(--accent);border-color:var(--accent);background:rgba(107,114,128,.08)}
+/* 身份徽章 + 下拉 */
+.nav-identity{
+  position:relative;display:flex;align-items:center;gap:8px;cursor:pointer;
+  padding:5px 14px 5px 5px;border-radius:40px;
+  border:1px solid var(--line);
+  background:var(--paper);backdrop-filter:blur(10px);
+  transition:.3s;
+}
+.nav-identity:hover{border-color:var(--accent);background:rgba(107,114,128,.08)}
+.identity-av{
+  width:30px;height:30px;border-radius:50%;
+  background:linear-gradient(135deg,#9CA3AF,#6B7280);
+  display:grid;place-items:center;
+  font-family:var(--serif);font-style:italic;color:#fff;font-size:14px;flex-shrink:0;
+  box-shadow:0 1px 4px rgba(31,41,55,.2);
+}
+.identity-name{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--ink);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 下拉菜单 */
+.identity-dropdown{
+  position:absolute;top:calc(100% + 10px);right:0;
+  min-width:180px;
+  background:var(--paper);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  border:1px solid var(--line-soft);border-radius:var(--r-md);
+  box-shadow:0 10px 30px rgba(0,0,0,.12);
+  overflow:hidden;
+  opacity:0;transform:translateY(-8px);
+  pointer-events:none;transition:all .25s ease;
+}
+.identity-dropdown.show{opacity:1;transform:translateY(0);pointer-events:auto}
+.identity-dropdown .dd-item{
+  display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;
+  font-family:var(--serif);font-style:italic;font-size:14px;color:var(--ink);
+  transition:background .2s;
+}
+.identity-dropdown .dd-item:hover{background:color-mix(in srgb,var(--gold) 10%,var(--paper));color:var(--gold)}
+.identity-dropdown .dd-item .dd-ico{font-size:16px;opacity:.7}
+.identity-dropdown .dd-sep{height:1px;background:var(--line-soft);margin:4px 8px}
+.identity-dropdown .dd-item.danger{color:#c06858}
+.identity-dropdown .dd-item.danger:hover{background:rgba(192,104,88,.08);color:#b04838}
+
+@media(max-width:680px){
+  .nav{padding:14px 14px}
+  .nav-right{right:14px}
+  .nav-tab{padding:8px 16px;font-size:15px}
+  .icon-btn{display:none}
+  .identity-name{display:none}
+}
+
+/* —— 统一 SVG 图标系统 —— */
+.ico-svg{
+  width:18px;height:18px;display:inline-block;vertical-align:middle;
+  stroke-width:1.8;flex-shrink:0;
+}
+.icon-btn .ico-svg{width:16px;height:16px}
+.dd-item .ico-svg{width:16px;height:16px;margin-right:2px}
+.modal-close .ico-svg{width:20px;height:20px}
+
+/* —— 视图容器 · 无缝切换动画 —— */
+.view{display:none;animation:viewIn .6s cubic-bezier(.2,.8,.3,1) both}
+.view.active{display:block}
+.view.leaving{display:block;animation:viewOut .45s cubic-bezier(.4,0,.2,1) forwards}
+/* 平流层大卡片飞出缩小（像云朵融入对应日期格） */
+.view.leaving #cardStream{animation:encounterFlyOut .55s cubic-bezier(.6,0,.3,1) forwards}
+@keyframes viewIn{from{opacity:0;transform:translateY(16px) scale(.98);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
+@keyframes viewOut{from{opacity:1}to{opacity:0;transform:translateY(-10px) scale(1.02);filter:blur(6px)}}
+@keyframes encounterFlyOut{
+  0%  {opacity:1;transform:scale(1) rotateX(0) rotateY(0);filter:none}
+  55% {opacity:.5;transform:scale(.55) rotateX(-8deg) rotateY(6deg);filter:blur(4px)}
+  100%{opacity:0;transform:scale(.08) translate(var(--fly-to, 300px, -200px)) rotateX(-18deg) rotateY(12deg);filter:blur(10px)}
+}
+/* 日历网格进入时，格子依次弹入 */
+.view.active #calGrid .day-cell{opacity:0;animation:cellPopIn .5s cubic-bezier(.2,.8,.3,1) forwards}
+.view.active #calGrid .day-cell:nth-child(n){animation-delay:calc(var(--cell-delay, 0ms) + 120ms)}
+@keyframes cellPopIn{from{opacity:0;transform:scale(.7);filter:blur(6px)}to{opacity:1;transform:scale(1);filter:none}}
+.wrap{max-width:1200px;margin:0 auto;padding:0 clamp(16px,4vw,40px);height:100vh;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
+/* 平流层：一页不滚动（沿用默认） */
+/* 岁月晴雨表 / 我的仰望 / 分类详情：可滚动翻页，完整呈现内容 */
+#view-calendar.active .wrap,
+#view-gallery.active .wrap,
+#view-catdetail.active .wrap{overflow-y:auto;overflow-x:hidden;height:auto;min-height:100vh;padding-top:80px;padding-bottom:60px;justify-content:flex-start}
+.wrap > .hero{flex-shrink:0}
+.wrap > .strato{flex-shrink:0}
+.wrap > .cat-cover-grid{flex-shrink:0}
+
+/* —— 首页大标题 · 古典衬线 · 清透高级感 —— */
+.hero{text-align:center;margin-bottom:14px;animation:fadeIn 1s ease both}
+.hero h1{
+  font-family:var(--hand);font-weight:400;
+  font-size:clamp(40px,6vw,66px);line-height:1.15;letter-spacing:.06em;
+  color:var(--ink);
+  margin-bottom:20px;position:relative;
+  text-shadow:0 1px 2px rgba(255,255,255,.4);
+  display:inline-block;
+}
+.hero h1 .title-text{position:relative;display:inline-block}
+/* 飘逸下划线曲线 */
+.hero h1 .title-swoosh{
+  position:absolute;left:-5%;right:-5%;bottom:-14px;height:30px;
+  pointer-events:none;
+}
+.hero h1 .title-swoosh path{stroke:var(--accent);opacity:.55}
+.hero h1 em{font-style:normal;color:var(--ink-soft);font-weight:400}
+/* 小云朵涂鸦 · 可点击上传 */
+.hero h1 .cloud-doodle{
+  display:inline-block;width:44px;height:30px;margin-left:6px;vertical-align:middle;
+  cursor:pointer;transition:all .3s ease;
+  animation:cloudFloat 4s ease-in-out infinite;
+  filter:drop-shadow(0 2px 4px rgba(31,41,55,.15));
+}
+.hero h1 .cloud-doodle:hover{
+  transform:scale(1.15) translateY(-3px);
+  filter:drop-shadow(0 4px 10px rgba(107,114,128,.35));
+}
+.hero h1 .cloud-doodle:active{transform:scale(.95)}
+.hero h1 .cloud-doodle path{stroke:var(--accent);opacity:.85}
+.hero h1 .cloud-doodle circle,.hero h1 .cloud-doodle path[opacity=".5"]{stroke:var(--accent)}
+@keyframes cloudFloat{
+  0%,100%{transform:translateY(0) rotate(-3deg)}
+  50%{transform:translateY(-4px) rotate(2deg)}
+}
+.hero h1 .cloud-doodle:hover{animation-play-state:paused}
+.hero .tagline{
+  font-family:var(--serif);font-weight:300;font-style:italic;
+  color:var(--ink-soft);
+  font-size:clamp(12px,1.4vw,14px);letter-spacing:.04em;
+  line-height:1.7;
+  max-width:540px;margin:0 auto;
+}
+.hero .tagline .line1{display:block}
+.hero .tagline .line2{display:block;margin-top:4px}
+.hero .meta{font-family:var(--serif);font-style:italic;color:var(--ink-faint);font-size:12px;margin-top:12px;letter-spacing:.04em}
+
+/* —— 随机平流层偶遇卡片 —— */
+.strato{margin:8px 0 10px}
+.strato-head{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px}
+.strato-head h2{font-family:var(--serif);font-weight:400;font-size:clamp(18px,2.4vw,24px)}
+.strato-head h2 em{font-style:italic;color:var(--ink-soft);font-weight:300}
+.strato-actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn{
+  font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;
+  padding:8px 16px;border-radius:30px;border:1px solid var(--line);
+  background:var(--paper);color:var(--ink);transition:all .3s ease;
+  display:inline-flex;align-items:center;gap:6px;letter-spacing:.02em;
+}
+.btn:hover{transform:translateY(-1px);box-shadow:var(--sh-soft);border-color:var(--gold);color:var(--ink)}
+.btn-primary{background:linear-gradient(135deg,#6B7280 0%,#4B5563 100%);color:#fff;border-color:transparent;text-shadow:0 1px 2px rgba(0,0,0,.15)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:var(--sh-lift);color:#fff}
+.btn-ghost{background:transparent}
+
+/* —— 平流层 · 双分类封面卡片 —— */
+.cat-cover-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:14px;
+  margin:0 auto;max-width:720px;
+}
+@media(max-width:600px){.cat-cover-grid{grid-template-columns:1fr;gap:14px}}
+.cat-cover{
+  position:relative;border-radius:var(--r-md);overflow:hidden;
+  aspect-ratio:16/9;cursor:pointer;
+  background:var(--glass);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  border:1px solid var(--line-soft);
+  box-shadow:var(--sh-soft);
+  transition:all .5s cubic-bezier(.2,.8,.3,1);
+  display:flex;flex-direction:column;justify-content:flex-end;
+}
+.cat-cover:hover{box-shadow:var(--sh-lift);transform:translateY(-6px) scale(1.01)}
+.cat-cover .cover-bg{
+  position:absolute;inset:0;z-index:0;
+  background:linear-gradient(135deg,transparent 40%,rgba(0,0,0,.35) 100%);
+  transition:opacity .5s;
+}
+.cat-cover.has-media .cover-bg{
+  background:linear-gradient(180deg,transparent 30%,rgba(0,0,0,.65) 100%);
+}
+.cat-cover .cover-img{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;
+  transition:transform .6s ease;
+}
+.cat-cover:hover .cover-img{transform:scale(1.04)}
+.cat-cover .cover-placeholder{
+  position:absolute;inset:0;display:grid;place-items:center;z-index:0;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--sky-2) 60%,transparent),color-mix(in srgb,var(--sky-3) 50%,transparent));
+  opacity:.35;
+}
+.cat-cover .cover-placeholder svg{width:50%;height:50%;opacity:.5}
+.cat-cover .cover-content{
+  position:relative;z-index:2;padding:14px 18px;
+  color:#fff;
+}
+.cat-cover .cover-label{
+  font-family:var(--serif);font-style:italic;font-size:11px;
+  letter-spacing:.12em;text-transform:uppercase;opacity:.85;
+}
+.cat-cover .cover-title{
+  font-family:var(--hand);font-weight:400;
+  font-size:clamp(28px,3.5vw,42px);line-height:1.05;margin:6px 0 4px;
+  text-shadow:0 2px 12px rgba(0,0,0,.55);
+  letter-spacing:.04em;
+}
+.cat-cover .cover-desc{
+  font-family:var(--serif);font-weight:300;font-size:12px;
+  opacity:.85;line-height:1.5;max-width:85%;
+}
+.cat-cover .cover-count{
+  display:inline-block;margin-top:10px;padding:3px 12px;border-radius:20px;
+  background:rgba(255,255,255,.2);backdrop-filter:blur(8px);
+  font-family:var(--sans);font-size:11px;letter-spacing:.05em;
+  border:1px solid rgba(255,255,255,.3);
+}
+.cat-cover.empty .cover-content{color:var(--ink)}
+.cat-cover.empty .cover-title{color:var(--ink)}
+.cat-cover.empty .cover-desc{color:var(--ink-soft);opacity:.7}
+.cat-cover.empty .cover-label{color:var(--ink-faint)}
+.cat-cover.empty .cover-count{background:var(--paper);color:var(--ink);border-color:var(--line-soft)}
+/* 分类详情视图返回按钮 */
+.cat-back{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--serif);font-style:italic;font-size:14px;
+  color:var(--ink-soft);cursor:pointer;
+  padding:8px 16px;border-radius:30px;
+  background:var(--glass);backdrop-filter:var(--glass-blur);
+  border:1px solid var(--line-soft);
+  transition:all .3s;margin-bottom:20px;
+}
+.cat-back:hover{color:var(--ink);background:color-mix(in srgb,var(--paper) 80%,transparent)}
+.cat-detail-head{text-align:center;margin-bottom:30px}
+.cat-detail-head h2{
+  font-family:var(--hand);font-weight:400;
+  font-size:clamp(36px,4.5vw,52px);color:var(--ink);letter-spacing:.1em;
+}
+.cat-detail-head h2 em{font-style:normal;color:var(--ink-soft)}
+.cat-detail-sub{font-family:var(--serif);font-style:italic;color:var(--ink-faint);font-size:14px;margin-top:6px}
+
+.encounter{
+  position:relative;border-radius:var(--r-lg);overflow:hidden;
+  background:var(--glass);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  border:1px solid var(--line-soft);
+  box-shadow:var(--sh-soft);min-height:380px;
+  display:grid;grid-template-columns:1.3fr 1fr;
+  transition:.5s;
+}
+.encounter:hover{box-shadow:var(--sh-lift)}
+@media(max-width:780px){.encounter{grid-template-columns:1fr;min-height:auto}}
+.encounter-media{
+  position:relative;min-height:380px;background:linear-gradient(135deg,var(--sky-2),var(--sky-3));overflow:hidden;
+}
+.encounter-media img,.encounter-media video{width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0}
+.encounter-media .placeholder{
+  position:absolute;inset:0;display:grid;place-items:center;
+  font-family:var(--serif);font-style:italic;color:var(--ink-faint);font-size:14px;
+  background:linear-gradient(160deg,var(--sky-2),var(--sky-3));
+}
+.encounter-body{padding:clamp(24px,3vw,38px);display:flex;flex-direction:column;justify-content:center}
+.encounter-mode{
+  display:inline-flex;align-items:center;gap:8px;font-family:var(--serif);font-style:italic;
+  font-size:12px;color:var(--ink-faint);margin-bottom:14px;letter-spacing:.05em;
+}
+.encounter-mode .dot{width:8px;height:8px;border-radius:50%;background:var(--sky-3);box-shadow:0 0 10px var(--sky-3);transition:.6s}
+.encounter-when{font-family:var(--serif);font-style:italic;color:var(--gold-ink);font-size:14px;margin-bottom:6px;letter-spacing:.02em}
+.encounter-loc{font-family:var(--serif);font-style:italic;color:var(--ink-faint);font-size:13px;margin-bottom:20px}
+.encounter-text{
+  font-family:var(--serif);font-size:clamp(16px,2vw,19px);line-height:1.75;color:var(--ink);
+  font-weight:400;flex:1;
+}
+.encounter-text.essay{font-family:var(--sans);font-size:14.5px;line-height:1.9;color:var(--ink-soft);white-space:pre-wrap}
+.encounter-empty{
+  grid-column:1/-1;padding:60px 30px;text-align:center;
+}
+.encounter-empty .ico{font-size:40px;opacity:.4;margin-bottom:14px}
+.encounter-empty h3{font-family:var(--serif);font-weight:400;font-size:22px;margin-bottom:8px;color:var(--ink)}
+.encounter-empty p{font-family:var(--serif);font-style:italic;color:var(--ink-faint);font-size:14px;max-width:420px;margin:0 auto}
+
+/* —— Card Stream · 海报式卡片 —— */
+.card-stream{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:22px;margin-top:10px}
+.stream-card{
+  position:relative;
+  border-radius:var(--r-lg);overflow:hidden;
+  background:var(--glass);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  border:1px solid var(--line-soft);
+  box-shadow:var(--sh-soft);
+  transition:.4s;cursor:pointer;
+  animation:streamIn .6s cubic-bezier(.2,.8,.3,1) both;
+  display:flex;flex-direction:column;
+}
+.stream-card:hover{box-shadow:var(--sh-lift);transform:translateY(-4px)}
+@keyframes streamIn{from{opacity:0;transform:translateY(20px);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
+.stream-card:nth-child(1){animation-delay:0ms}
+.stream-card:nth-child(2){animation-delay:60ms}
+.stream-card:nth-child(3){animation-delay:120ms}
+.stream-card:nth-child(4){animation-delay:180ms}
+.stream-card:nth-child(5){animation-delay:240ms}
+.sc-media{
+  position:relative;width:100%;aspect-ratio:4/3;overflow:hidden;
+  background:linear-gradient(135deg,var(--sky-2),var(--sky-3));
+}
+.sc-media img,.sc-media video{width:100%;height:100%;object-fit:cover;display:block}
+.sc-media .sc-placeholder{
+  position:absolute;inset:0;display:grid;place-items:center;
+  font-family:var(--serif);font-style:italic;color:var(--ink-faint);font-size:14px;
+  background:linear-gradient(160deg,var(--sky-2),var(--sky-3));
+}
+/* 图片上叠加的文字区 */
+.sc-overlay{
+  position:absolute;inset:0;padding:20px;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,.55) 100%);
+  color:#fff;
+}
+.sc-cat{
+  font-family:var(--serif);font-style:italic;font-size:11px;
+  letter-spacing:.1em;text-transform:uppercase;
+  opacity:.85;
+}
+.sc-title{
+  font-family:var(--hand);font-weight:400;
+  font-size:clamp(22px,2.8vw,30px);line-height:1.3;margin:6px 0 4px;
+  text-shadow:0 2px 10px rgba(0,0,0,.5);
+  letter-spacing:.03em;
+}
+.sc-title em{font-style:normal;color:rgba(255,255,255,.75)}
+.sc-when{font-family:var(--serif);font-style:italic;font-size:12px;opacity:.75}
+/* 卡片底部描述 */
+.sc-body{padding:18px 20px 16px;display:flex;flex-direction:column;gap:10px}
+.sc-text{
+  font-family:var(--serif);font-weight:300;
+  font-size:14px;line-height:1.7;color:var(--ink);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.sc-loc{font-family:var(--serif);font-style:italic;color:var(--ink-faint);font-size:12px}
+/* 底部按钮 */
+.sc-action{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-top:6px;padding:11px 20px;border-radius:30px;
+  background:linear-gradient(135deg,#6B7280,#4B5563);
+  color:#fff;font-family:var(--serif);font-style:italic;font-size:14px;
+  border:none;cursor:pointer;transition:all .3s ease;
+  box-shadow:0 4px 14px rgba(107,114,128,.35);
+}
+.sc-action:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(107,114,128,.45)}
+.sc-action::after{content:'';display:inline-block;width:16px;height:16px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='5' y1='12' x2='19' y2='12'/%3E%3Cpolyline points='12 5 19 12 12 19'/%3E%3C/svg%3E") center/contain no-repeat;transition:transform .3s;margin-left:6px;vertical-align:middle}
+.sc-action:hover::after{transform:translateX(4px)}
+.sc-empty{
+  padding:80px 30px;text-align:center;
+  background:var(--glass);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  border-radius:var(--r-lg);border:1px solid var(--line-soft);
+}
+.sc-empty .ico{font-size:40px;opacity:.4;margin-bottom:14px}
+.sc-empty h3{font-family:var(--serif);font-weight:300;font-size:22px;margin-bottom:8px;color:var(--ink);letter-spacing:.1em}
+.sc-empty p{font-family:var(--serif);font-style:italic;color:var(--ink-faint);font-size:14px;max-width:420px;margin:0 auto}
+
+/* —— 我的图册网格 —— */
+.gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.gallery-item{
+  position:relative;aspect-ratio:1;border-radius:var(--r-md);overflow:hidden;cursor:pointer;
+  background:var(--glass);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  border:1px solid var(--line-soft);transition:.4s;
+}
+.gallery-item:hover{transform:translateY(-3px);box-shadow:var(--sh-soft);border-color:var(--gold)}
+.gallery-item img,.gallery-item video{width:100%;height:100%;object-fit:cover}
+.gallery-item .essay-mark{
+  position:absolute;inset:0;display:grid;place-items:center;padding:20px;text-align:center;
+  font-family:var(--serif);font-style:italic;font-size:13px;color:var(--ink-soft);line-height:1.6;
+  background:linear-gradient(135deg,var(--paper),var(--paper-warm));
+}
+.gallery-item .cap{position:absolute;bottom:0;left:0;right:0;padding:10px 12px;font-family:var(--serif);font-style:italic;font-size:11px;color:var(--ink);background:linear-gradient(transparent,rgba(251,253,255,.85))}
+
+/* —— 天空日历 —— */
+.cal-head{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:18px;margin-bottom:26px}
+.cal-head h2{font-family:var(--serif);font-weight:400;font-size:clamp(30px,4.5vw,46px);letter-spacing:-.01em}
+.cal-head h2 em{font-style:italic;color:var(--ink-soft);font-weight:300}
+.cal-nav{display:flex;gap:8px;align-items:center}
+.year-switch{font-family:var(--serif);font-style:italic;color:var(--ink);font-size:18px;min-width:80px;text-align:center}
+
+.ratio-wrap{margin:24px 0 36px}
+.ratio-label{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;flex-wrap:wrap;gap:10px}
+.ratio-label .t{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--ink-soft)}
+.ratio-label .legend{display:flex;gap:14px;font-size:12px;color:var(--ink-faint)}
+.ratio-label .legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.ratio-bar{height:22px;border-radius:12px;overflow:hidden;display:flex;background:var(--paper);border:1px solid var(--line-soft);backdrop-filter:blur(6px)}
+/* 顺序：黑夜 · 黄昏 · 白天 */
+.ratio-bar .seg-n{order:1;background:linear-gradient(90deg,#c0bcd8,#a8a0c8)}
+.ratio-bar .seg-h{order:2;background:linear-gradient(90deg,#f5c6a8,#e8a890)}
+.ratio-bar .seg-d{order:3;background:linear-gradient(90deg,#b8d8ed,#8ac0db)}
+.ratio-bar > div{transition:width 1s ease;position:relative;display:flex;align-items:center;justify-content:center;min-width:0}
+.ratio-bar > div > span{font-family:var(--serif);font-style:italic;font-size:11px;color:rgba(255,255,255,.95);text-shadow:0 1px 2px rgba(0,0,0,.15);opacity:0;transform:translateY(-2px);transition:.5s;white-space:nowrap}
+.ratio-bar:hover > div > span,.ratio-bar:active > div > span{opacity:1;transform:none}
+.ratio-vals{margin-top:8px;font-family:var(--serif);font-style:italic;font-size:12.5px;color:var(--ink-faint);display:flex;gap:18px;flex-wrap:wrap}
+
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+.cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:8px}
+.cal-weekdays div{text-align:center;font-family:var(--serif);font-style:italic;font-size:11.5px;color:var(--ink-faint);padding:4px}
+.day-cell{
+  aspect-ratio:1;border-radius:var(--r-sm);position:relative;overflow:hidden;
+  cursor:pointer;border:1px solid var(--line-soft);transition:.4s;
+  background:var(--glass);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.day-cell:hover{transform:scale(1.05);z-index:2;box-shadow:var(--sh-lift);border-color:var(--gold)}
+.day-cell .dnum{position:absolute;top:6px;left:8px;font-family:var(--serif);font-style:italic;font-size:12px;z-index:3;color:var(--ink-soft)}
+.day-cell.day{background:linear-gradient(160deg,#dceaf5,#b8d8ed);border-color:transparent}
+.day-cell.day .dnum{color:#3a5070}
+.day-cell.dusk{background:linear-gradient(160deg,#fde8da,#f5c6a8);border-color:transparent}
+.day-cell.dusk .dnum{color:#6a4838}
+.day-cell.night{background:linear-gradient(160deg,#d4d0e4,#c0bcd8);border-color:transparent}
+.day-cell.night .dnum{color:#4a4868}
+/* 未记录：彩虹微光 · 淡彩呼吸 */
+.day-cell.empty .rainbow{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(70% 50% at 30% 25%, rgba(248,217,208,.55) 0%, transparent 60%),
+    radial-gradient(60% 50% at 70% 75%, rgba(212,237,228,.55) 0%, transparent 60%),
+    conic-gradient(from 0deg,
+      rgba(252,232,184,.22),rgba(245,213,216,.22),rgba(212,237,228,.22),
+      rgba(184,216,237,.22),rgba(245,198,168,.22),rgba(252,232,184,.22));
+  animation:rainbowBreathe 8s ease-in-out infinite;
+}
+.day-cell.empty .dnum{color:var(--ink-faint)}
+@keyframes rainbowBreathe{
+  0%,100%{opacity:.5;transform:scale(1)}
+  50%{opacity:.9;transform:scale(1.04);filter:saturate(1.3)}
+}
+.day-cell .count{position:absolute;bottom:5px;right:7px;font-size:10px;font-family:var(--serif);font-style:italic;color:rgba(255,255,255,.9);z-index:3;padding:1px 6px;border-radius:10px;background:rgba(0,0,0,.18);backdrop-filter:blur(4px)}
+.day-cell.day .count{color:#fff;background:rgba(58,106,138,.5)}
+.day-cell.dusk .count{color:#fff;background:rgba(122,80,56,.4)}
+.day-cell.night .count{color:#fff;background:rgba(74,72,104,.5)}
+.day-cell .mode-mark{position:absolute;bottom:5px;left:7px;font-size:10px;letter-spacing:1px;color:rgba(255,255,255,.9);z-index:3;text-shadow:0 1px 3px rgba(0,0,0,.2)}
+.day-cell.day .mode-mark{color:#fff;text-shadow:0 1px 3px rgba(58,106,138,.4)}
+.day-cell.dusk .mode-mark{color:#fff;text-shadow:0 1px 3px rgba(106,72,56,.4)}
+.day-cell.night .mode-mark{color:#fff;text-shadow:0 1px 3px rgba(74,72,104,.4)}
+
+/* —— 发布弹窗 —— */
+.modal-bg{
+  position:fixed;inset:0;z-index:100;display:none;
+  background:color-mix(in srgb,var(--ink) 50%,transparent);backdrop-filter:blur(10px);
+  align-items:center;justify-content:center;padding:16px;
+}
+.modal-bg.show{display:flex;animation:fadeIn .4s ease}
+.modal{
+  background:var(--glass);
+  backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  border:1px solid var(--line-soft);border-radius:var(--r-lg);
+  width:min(560px,100%);max-height:90vh;overflow:auto;
+  box-shadow:var(--sh-lift);
+  animation:popIn .5s cubic-bezier(.2,.8,.3,1.1) both;
+}
+@keyframes popIn{from{opacity:0;transform:scale(.94) translateY(10px)}to{opacity:1;transform:none}}
+.modal-head{padding:24px 26px 4px;display:flex;justify-content:space-between;align-items:flex-start}
+.modal-title{font-family:var(--serif);font-weight:400;font-size:24px;letter-spacing:-.01em}
+.modal-title em{font-style:italic;color:var(--ink-soft);font-size:14px;display:block;margin-top:4px;font-weight:300}
+.modal-close{cursor:pointer;color:var(--ink-faint);font-size:22px;line-height:1;background:none;border:none;transition:.3s;padding:4px}
+.modal-close:hover{color:var(--ink);transform:rotate(90deg)}
+.modal-body{padding:16px 26px 26px}
+
+.mode-tabs{display:flex;gap:6px;background:color-mix(in srgb,var(--sky-1) 30%,transparent);padding:4px;border-radius:30px;border:1px solid var(--line-soft);margin-bottom:20px}
+.mode-tabs button{flex:1;border:none;background:none;padding:9px;border-radius:30px;cursor:pointer;font-family:var(--sans);font-size:13px;color:var(--ink-soft);transition:.3s}
+.mode-tabs button.active{background:var(--paper);color:var(--ink);box-shadow:var(--sh-soft);font-weight:500}
+
+.dropzone{
+  border:1.5px dashed var(--line);border-radius:var(--r-md);
+  padding:40px 20px;text-align:center;cursor:pointer;transition:.35s;
+  background:color-mix(in srgb,var(--sky-1) 30%,transparent);position:relative;overflow:hidden;
+}
+.dropzone:hover,.dropzone.drag{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 6%,transparent)}
+.dropzone .ico{font-size:28px;margin-bottom:10px;opacity:.7}
+.dropzone p{font-family:var(--serif);font-style:italic;color:var(--ink-soft);font-size:14.5px}
+.dropzone span{font-size:12px;color:var(--ink-faint);display:block;margin-top:4px}
+.preview-wrap{position:relative;border-radius:var(--r-md);overflow:hidden;margin-top:12px;display:none}
+.preview-wrap.show{display:block}
+.preview-wrap img,.preview-wrap video{width:100%;display:block;max-height:300px;object-fit:cover}
+.preview-remove{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;cursor:pointer;font-size:14px}
+.preview-remove:hover{background:rgba(0,0,0,.85)}
+
+.field{margin-top:16px}
+.field label{display:block;font-family:var(--serif);font-style:italic;font-size:13px;color:var(--ink-soft);margin-bottom:8px}
+.field input,.field textarea,.field select{
+  width:100%;font-family:var(--sans);font-size:14px;color:var(--ink);
+  background:color-mix(in srgb,var(--sky-1) 25%,transparent);border:1px solid var(--line-soft);border-radius:var(--r-sm);
+  padding:11px 14px;transition:.3s;
+}
+.field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--gold);background:var(--paper)}
+.field textarea{resize:vertical;min-height:70px;line-height:1.7}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:480px){.field-row{grid-template-columns:1fr}}
+
+.prompt-card{
+  background:color-mix(in srgb,var(--gold) 10%,var(--paper));
+  border-left:3px solid var(--gold);border-radius:0 var(--r-sm) var(--r-sm) 0;
+  padding:14px 18px;margin:18px 0;font-family:var(--serif);font-style:italic;color:var(--ink-soft);font-size:14.5px;
+}
+.prompt-card .lbl{font-style:normal;font-family:var(--sans);font-size:11px;color:var(--gold-ink);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:4px}
+.big-area{width:100%;min-height:140px;font-family:var(--sans);font-size:15px;line-height:1.9;color:var(--ink);background:transparent;border:1px solid var(--line-soft);border-radius:var(--r-sm);padding:13px 14px;resize:vertical}
+.big-area:focus{outline:none;border-color:var(--gold)}
+
+.modal-foot{margin-top:22px;display:flex;justify-content:flex-end;gap:10px;align-items:center}
+.foot-note{font-family:var(--serif);font-style:italic;font-size:12px;color:var(--ink-faint);margin-right:auto}
+
+/* —— 相机 FAB · 柔和呼吸微光 —— */
+/* FAB 样式已废弃 · 改为标题云朵上传
+.fab{...} */
+
+/* —— Toast —— */
+.toast{
+  position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:rgba(255,255,255,.7);
+  backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  color:var(--ink);padding:13px 22px;border-radius:30px;
+  border:1px solid var(--line-soft);
+  font-family:var(--serif);font-style:italic;font-size:13.5px;z-index:200;
+  opacity:0;pointer-events:none;transition:.45s cubic-bezier(.2,.8,.3,1);
+  box-shadow:var(--sh-soft);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* —— 分享天空 · 选项卡样式 —— */
+.share-sky-opt{
+  border:1px solid var(--line-soft);border-radius:var(--r-md);
+  background:var(--glass);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  padding:20px 14px;cursor:pointer;transition:.3s;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+}
+.share-sky-opt:hover{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 8%,var(--paper));transform:translateY(-2px)}
+.share-sky-opt .opt-ico{font-size:28px;margin-bottom:4px}
+.share-sky-opt .opt-title{font-family:var(--serif);font-weight:500;font-size:15px;color:var(--ink)}
+.share-sky-opt .opt-sub{font-family:var(--serif);font-style:italic;font-size:12px;color:var(--ink-faint);margin-top:-2px}
+
+/* —— 详情弹窗 —— */
+.detail-media{border-radius:var(--r-md);overflow:hidden;margin-bottom:18px;background:linear-gradient(135deg,var(--sky-2),var(--sky-3))}
+.detail-media img,.detail-media video{width:100%;display:block;max-height:50vh;object-fit:contain}
+.detail-when{font-family:var(--serif);font-style:italic;color:var(--gold-ink);font-size:14px;margin-bottom:6px;letter-spacing:.02em}
+.detail-loc{font-family:var(--serif);font-style:italic;color:var(--ink-faint);font-size:12.5px;margin-bottom:14px}
+.detail-text{font-family:var(--sans);font-size:14.5px;line-height:1.85;color:var(--ink);white-space:pre-wrap}
+
+/* —— 海报隐藏 canvas —— */
+.poster-canvas{display:none}
+
+footer{padding:50px 20px 30px;text-align:center;font-family:var(--serif);font-style:italic;color:var(--ink-faint);font-size:12.5px;border-top:1px solid var(--line-soft);margin-top:60px}
+footer em{display:block;margin-top:6px;font-size:10.5px;letter-spacing:.12em}
+
+.section-title{font-family:var(--serif);font-weight:400;font-size:clamp(20px,2.8vw,26px);margin:36px 0 18px;display:flex;align-items:baseline;gap:12px}
+.section-title em{font-style:italic;color:var(--ink-faint);font-size:13px;font-weight:300}
+.section-title .count{font-family:var(--sans);font-size:12px;color:var(--ink-soft);background:var(--paper);padding:3px 10px;border-radius:20px;border:1px solid var(--line-soft)}
+</style>
+</head>
+<body data-mood="day">
+<!-- 渐变背景：顶部 #F0F9FF → 底部 时段色（由 applyMood() 切换） -->
+
+<!-- 顶部导航 -->
+<nav class="nav">
+  <div class="nav-center">
+    <button class="nav-tab active" data-view="strato" onclick="go('strato')">平流层</button>
+    <button class="nav-tab" data-view="calendar" onclick="go('calendar')">岁月晴雨表</button>
+    <button class="nav-tab" data-view="gallery" onclick="go('gallery')">我的仰望</button>
+  </div>
+  <div class="nav-right">
+    <button class="icon-btn" onclick="exportData()" title="导出备份" aria-label="导出备份"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+    <button class="icon-btn" onclick="document.getElementById('importInput').click()" title="导入备份" aria-label="导入备份"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
+    <div class="nav-identity" id="navIdentity" onclick="toggleIdentityMenu(event)">
+      <div class="identity-av" id="identityAv">?</div>
+      <div class="identity-name" id="identityName">未命名</div>
+      <div class="identity-dropdown" id="identityDropdown">
+        <div class="dd-item" onclick="event.stopPropagation();openSettings();closeIdentityMenu()">
+          <svg class="dd-ico ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>身份设置
+        </div>
+        <div class="dd-sep"></div>
+        <div class="dd-item danger" onclick="event.stopPropagation();logoutAccount();closeIdentityMenu()">
+          <svg class="dd-ico ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>退出账号
+        </div>
+      </div>
+    </div>
+    <input type="file" id="importInput" accept=".sky,.json" style="display:none" onchange="importData(event)">
+  </div>
+</nav>
+
+<!-- ============ 视图：平流层（Card Stream） ============ -->
+<section class="view active" id="view-strato">
+  <div class="wrap">
+    <div class="hero">
+      <h1>
+        <span class="title-text">这片天空<em>比我更长久</em>
+          <svg class="title-swoosh" viewBox="0 0 500 30" preserveAspectRatio="none">
+            <path d="M10,18 C80,8 150,28 220,16 S360,6 430,18 S490,22 490,22"
+                  stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"
+                  opacity=".55"/>
+          </svg>
+        </span>
+        <svg class="cloud-doodle" viewBox="0 0 60 40" onclick="openPublish()" title="记录一片天空 · 点击上传">
+          <path d="M12,30 Q8,30 8,25 Q8,20 14,20 Q14,12 22,12 Q28,8 34,14 Q42,10 46,18 Q54,18 54,26 Q54,32 48,32 L14,32 Q10,32 12,30 Z"
+                stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round" opacity=".85"/>
+          <!-- 相机小图标 -->
+          <circle cx="42" cy="20" r="2.5" fill="currentColor" opacity=".7"/>
+          <path d="M36,14 L36,10 Q36,9 37,9 L40,9 Q41,9 41,10 L41,14" stroke="currentColor" stroke-width="1.2" fill="none" opacity=".5"/>
+        </svg>
+      </h1>
+      <div class="tagline">
+        <span class="line1">我只知道，这片天空比我更长久。</span>
+        <span class="line2">如果不把那些在我死后仍继续存在的东西叫作永恒，我又该把什么称为永恒呢？</span>
+      </div>
+    </div>
+
+    <div class="cat-cover-grid" id="catCoverGrid">
+      <div class="cat-cover" id="cover-encounter" onclick="enterCat('encounter')">
+        <div class="cover-placeholder">
+          <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".4">
+            <path d="M20,65 Q10,65 10,55 Q10,48 18,48 Q18,35 32,35 Q40,25 50,32 Q60,22 70,35 Q82,38 82,52 Q88,55 88,65 Q88,72 82,72 L20,72 Q14,72 20,65 Z"/>
+          </svg>
+        </div>
+        <div class="cover-content">
+          <div class="cover-label">Encounter · 邂逅</div>
+          <div class="cover-title">邂逅</div>
+          <div class="cover-desc">像寄出一张即时的明信片，把此刻的天空轻轻放下。</div>
+          <span class="cover-count" id="encounterCount">0 片天空</span>
+        </div>
+      </div>
+      <div class="cat-cover" id="cover-retrace" onclick="enterCat('retrace')">
+        <div class="cover-placeholder">
+          <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".4">
+            <path d="M50,20 L50,80 M25,45 L50,20 L75,45 M30,70 Q40,65 50,60 Q60,65 70,70"/>
+          </svg>
+        </div>
+        <div class="cover-content">
+          <div class="cover-label">Retrace · 回溯</div>
+          <div class="cover-title">回溯</div>
+          <div class="cover-desc">把那一日的天空，慢慢折成一封信，寄往远方的自己。</div>
+          <span class="cover-count" id="retraceCount">0 片天空</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 视图：分类详情（邂逅 / 回溯 列表） ============ -->
+<section class="view" id="view-catdetail">
+  <div class="wrap">
+    <div class="cat-back" onclick="backFromCat()"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>返回平流层</div>
+    <div class="cat-detail-head">
+      <h2 id="catDetailTitle">邂逅</h2>
+      <div class="cat-detail-sub" id="catDetailSub"></div>
+    </div>
+    <div class="card-stream" id="catDetailStream"></div>
+  </div>
+</section>
+
+<!-- ============ 视图：天空日历 ============ -->
+<section class="view" id="view-calendar">
+  <div class="wrap">
+    <div class="cal-head">
+      <h2 id="calTitle">岁月晴雨表 <em>· 2026</em></h2>
+      <div class="cal-nav">
+        <button class="icon-btn" onclick="prevMonth()">‹</button>
+        <div class="year-switch" id="calSwitch">2026 · 三月</div>
+        <button class="icon-btn" onclick="nextMonth()">›</button>
+      </div>
+    </div>
+
+    <div class="ratio-wrap">
+      <div class="ratio-label">
+        <span class="t">本月仰望时刻构成</span>
+        <span class="legend">
+          <span><i style="background:#a8a0c8"></i>黑夜</span>
+          <span><i style="background:#e8a890"></i>黄昏</span>
+          <span><i style="background:#8ac0db"></i>白天</span>
+        </span>
+      </div>
+      <div class="ratio-bar" id="ratioBar"></div>
+      <div class="ratio-vals" id="ratioVals"></div>
+    </div>
+
+    <div class="cal-weekdays">
+      <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+</section>
+
+<!-- ============ 视图：我的图册 ============ -->
+<section class="view" id="view-gallery">
+  <div class="wrap">
+    <div class="section-title">我的图册 <em>· 所有被你留住的天空</em> <span class="count" id="galleryCount">0</span></div>
+    <div class="gallery-grid" id="galleryGrid"></div>
+  </div>
+</section>
+
+<footer>
+  这片天空比我更长久
+  <em>no server · no account · only your sky, only your browser</em>
+</footer>
+
+<!-- 发布弹窗 -->
+<div class="modal-bg" id="publishModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="publishTitle">邂逅<em>— 像寄出一张即时的明信片</em></div>
+      <button class="modal-close" onclick="closePublish()" aria-label="关闭"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="mode-tabs">
+        <button class="active" onclick="switchMode('flash',this)">邂逅</button>
+        <button onclick="switchMode('memory',this)">回溯</button>
+      </div>
+
+      <!-- 闪念模式 -->
+      <div id="flashMode">
+        <div class="dropzone" id="dropzone" onclick="document.getElementById('mediaInput').click()">
+          <div class="ico"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px"><path d="M17.5 19a4.5 4.5 0 1 0-1.41-8.775 5.5 5.5 0 0 0-10.59 2.33A4 4 0 0 0 5.5 19h12z"/></svg></div>
+          <p>把这片天空放进来</p>
+          <span>支持图片 / 30 秒内短视频</span>
+        </div>
+        <input type="file" id="mediaInput" accept="image/*,video/*" style="display:none" onchange="handleMedia(event)">
+        <div class="preview-wrap" id="previewWrap">
+          <button class="preview-remove" onclick="clearMedia(event)" aria-label="清除"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+          <div id="previewBox"></div>
+        </div>
+        <div class="field-row" style="margin-top:16px">
+          <div class="field">
+            <label>时间（自动）</label>
+            <input type="text" id="flashTime" readonly>
+          </div>
+          <div class="field">
+            <label>地点</label>
+            <input type="text" id="flashLoc" value="天空之上">
+          </div>
+        </div>
+        <div class="field">
+          <label>当时的心绪（可留白）</label>
+          <textarea id="flashText" placeholder="一句话，或者什么都不说，让天空替你讲……"></textarea>
+        </div>
+      </div>
+
+      <!-- 回忆模式 -->
+      <div id="memoryMode" style="display:none">
+        <div class="prompt-card">
+          <span class="lbl">引导 · 其一</span>
+          这是哪一天的天空？那天日历上写着什么？
+        </div>
+        <div class="field">
+          <input type="text" id="memDate" placeholder="例如：2026 年 3 月 21 日，春分">
+        </div>
+        <div class="dropzone" onclick="document.getElementById('memMediaInput').click()" style="padding:24px">
+          <div class="ico" style="font-size:22px"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px"><path d="M17.5 19a4.5 4.5 0 1 0-1.41-8.775 5.5 5.5 0 0 0-10.59 2.33A4 4 0 0 0 5.5 19h12z"/></svg></div>
+          <p style="font-size:13px">附一片天空（可选）</p>
+        </div>
+        <input type="file" id="memMediaInput" accept="image/*,video/*" style="display:none" onchange="handleMemMedia(event)">
+        <div class="preview-wrap" id="memPreviewWrap">
+          <button class="preview-remove" onclick="clearMemMedia(event)" aria-label="清除"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+          <div id="memPreviewBox"></div>
+        </div>
+        <div class="prompt-card">
+          <span class="lbl">引导 · 其二</span>
+          当时的你在做什么？身边有人吗，还是只有风？
+        </div>
+        <textarea class="big-area" id="memBody1" placeholder="那一刻，你正从哪里走出来……"></textarea>
+        <div class="prompt-card">
+          <span class="lbl">引导 · 其三</span>
+          为什么这片天空让你眷恋？
+        </div>
+        <textarea class="big-area" id="memBody2" placeholder="这片天空留住你的理由……"></textarea>
+        <div class="field" style="margin-top:14px">
+          <label>地点</label>
+          <input type="text" id="memLoc" value="天空之上">
+        </div>
+      </div>
+
+      <div class="modal-foot">
+        <div class="foot-note">它将比你更长久。</div>
+        <button class="btn btn-ghost" onclick="closePublish()">再等等</button>
+        <button class="btn btn-primary" onclick="publish()">放进平流层</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 详情弹窗 -->
+<div class="modal-bg" id="detailModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">那一片天空<em>— 被你留住的一刹那</em></div>
+      <button class="modal-close" onclick="closeDetail()" aria-label="关闭"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+  </div>
+</div>
+
+<!-- 设置弹窗 · 身份 + 清空图册 -->
+<div class="modal-bg" id="settingsModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">设置<em>— 你的天空，你的名字</em></div>
+      <button class="modal-close" onclick="closeSettings()" aria-label="关闭"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="prompt-card">
+        <span class="lbl">本地身份</span>
+        给这片天空图册起一个归属名字。它只存在你的浏览器里，不联网、不上传。
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>头像字（1 个字）</label>
+          <input type="text" id="setAvatar" maxlength="1" placeholder="如：穗">
+        </div>
+        <div class="field">
+          <label>你的名字</label>
+          <input type="text" id="setName" maxlength="12" placeholder="如：温予穗">
+        </div>
+      </div>
+      <div class="modal-foot" style="margin-top:18px">
+        <button class="btn btn-primary" onclick="saveIdentity()">保存身份</button>
+      </div>
+
+      <div style="height:1px;background:var(--line-soft);margin:26px 0"></div>
+
+      <div class="prompt-card" style="border-left-color:#c0392b;background:color-mix(in srgb,#c0392b 8%,var(--paper))">
+        <span class="lbl" style="color:#c0392b">危险区</span>
+        清空所有天空记录将永久删除你在这个浏览器里的全部图册，无法恢复。
+      </div>
+      <div class="modal-foot" style="margin-top:18px">
+        <div class="foot-note">已留住 <span id="settingsCount">0</span> 片天空</div>
+        <button class="btn btn-ghost" onclick="closeSettings()">取消</button>
+        <button class="btn" style="border-color:#c0392b;color:#c0392b" onclick="clearAllMoments()">清空整个图册</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 分享弹窗 · 让朋友也拥有自己的天空图册 -->
+<div class="modal-bg" id="shareModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">把这片天空<em>— 送给也爱抬头的人</em></div>
+      <button class="modal-close" onclick="closeShare()" aria-label="关闭"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="prompt-card">
+        <span class="lbl">关于分享</span>
+        朋友打开后，会自动拥有一个完全独立的天空图册。他的天空只存在他的浏览器里，你的也只存在你的——互不干扰，绝对隐私。
+      </div>
+
+      <!-- 方式一：原生分享（移动端） -->
+      <button class="btn btn-primary" id="shareNativeBtn" onclick="shareNative()" style="width:100%;justify-content:center;margin-bottom:14px;display:none">📤 用系统分享发送</button>
+
+      <!-- 方式二：复制链接 -->
+      <div class="field" id="shareUrlField">
+        <label>把这个链接发给朋友</label>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="shareUrl" readonly style="flex:1;font-size:12px">
+          <button class="btn" onclick="copyShareUrl()" style="flex-shrink:0">复制</button>
+        </div>
+      </div>
+
+      <!-- 方式三：下载网页文件 -->
+      <div class="field">
+        <label>或者下载网页文件，直接发给朋友</label>
+        <button class="btn" onclick="downloadWebpage()" style="width:100%;justify-content:center">📥 下载「这片天空比我更长久.html」</button>
+      </div>
+
+      <div style="height:1px;background:var(--line-soft);margin:22px 0"></div>
+
+      <!-- 二维码 -->
+      <div id="shareQRWrap" style="text-align:center;display:none">
+        <label style="display:block;font-family:var(--serif);font-style:italic;font-size:13px;color:var(--ink-soft);margin-bottom:12px">朋友扫一扫，打开属于他的天空</label>
+        <div id="shareQRBox" style="display:inline-block;padding:12px;background:#fff;border-radius:var(--r-sm);box-shadow:var(--sh-soft)"></div>
+      </div>
+
+      <div class="modal-foot" style="margin-top:22px">
+        <div class="foot-note">朋友的天空图册，从一开始就只属于他自己。</div>
+        <button class="btn" onclick="closeShare()">合上</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 分享天空弹窗 -->
+<div class="modal-bg" id="shareSkyModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <div class="modal-title">分享天空<em>— 把这一刻捎给朋友</em></div>
+      <button class="modal-close" onclick="closeShareSky()" aria-label="关闭"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="share-sky-preview" id="shareSkyPreview" style="border-radius:var(--r-md);overflow:hidden;aspect-ratio:16/10;background:linear-gradient(135deg,var(--sky-2),var(--sky-3));margin-bottom:18px;display:none">
+        <img id="shareSkyImg" style="width:100%;height:100%;object-fit:cover;display:block" alt="预览">
+      </div>
+      <div class="share-sky-info" id="shareSkyInfo" style="font-family:var(--serif);font-style:italic;color:var(--ink-soft);font-size:14px;text-align:center;margin-bottom:18px">选一种方式把它送出去</div>
+      <div class="share-sky-options" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <button class="share-sky-opt" onclick="shareSkyCopyImage()">
+          <div class="opt-ico"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+          <div class="opt-title">复制图片</div>
+          <div class="opt-sub">粘贴到任意聊天框</div>
+        </button>
+        <button class="share-sky-opt" onclick="shareSkyCopyLink()">
+          <div class="opt-ico"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+          <div class="opt-title">复制链接</div>
+          <div class="opt-sub">生成公开分享页链接</div>
+        </button>
+      </div>
+    </div>
+    <div class="modal-foot" style="justify-content:center">
+      <button class="btn" onclick="closeShareSky()">合上</button>
+    </div>
+  </div>
+</div>
+
+<canvas class="poster-canvas" id="posterCanvas"></canvas>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+ * 这片天空比我更长久 · 个人天空日志
+ * 纯工具型 · 数据全本地 IndexedDB · 无后端无账号
+ * ============================================================ */
+
+/* ---------- 日志 ---------- */
+const __log = (cat, action, detail) => {
+  const t = new Date().toTimeString().slice(0,8);
+  console.log(`%c[SkyLog ${t}]%c ${cat}%c · ${action}`, 'color:#7a73a0','color:#c9a86a;font-weight:600','color:inherit', detail!==undefined?detail:'');
+};
+const __err = (cat, action, e) => console.error(`[SkyLog ${cat}] ${action}`, e);
+window.addEventListener('error', e => __err('全局','未捕获', e.error||e.message));
+
+/* ============================================================
+ * SkyDB · IndexedDB 封装
+ * 存储结构：moments { id, type, media(base64), text, time, location, mode, createdAt }
+ * ============================================================ */
+const SkyDB = {
+  db: null,
+  DB_NAME: 'SkyLogDB',
+  STORE: 'moments',
+  async init(){
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(this.DB_NAME, 1);
+      req.onupgradeneeded = e => {
+        const db = e.target.result;
+        if(!db.objectStoreNames.contains(this.STORE)){
+          const store = db.createObjectStore(this.STORE, { keyPath:'id' });
+          store.createIndex('time', 'time', { unique:false });
+          store.createIndex('createdAt', 'createdAt', { unique:false });
+        }
+      };
+      req.onsuccess = e => { this.db = e.target.result; __log('DB','初始化成功'); resolve(); };
+      req.onerror = e => { __err('DB','初始化失败', e.target.error); reject(e.target.error); };
+    });
+  },
+  _tx(mode){ return this.db.transaction(this.STORE, mode).objectStore(this.STORE); },
+  async add(item){
+    return new Promise((resolve, reject) => {
+      const r = this._tx('readwrite').add(item);
+      r.onsuccess = () => { __log('DB','写入', item.id); resolve(item); };
+      r.onerror = e => reject(e.target.error);
+    });
+  },
+  async put(item){
+    return new Promise((resolve, reject) => {
+      const r = this._tx('readwrite').put(item);
+      r.onsuccess = () => resolve(item);
+      r.onerror = e => reject(e.target.error);
+    });
+  },
+  async delete(id){
+    return new Promise((resolve, reject) => {
+      const r = this._tx('readwrite').delete(id);
+      r.onsuccess = () => { __log('DB','删除', id); resolve(); };
+      r.onerror = e => reject(e.target.error);
+    });
+  },
+  async get(id){
+    return new Promise((resolve, reject) => {
+      const r = this._tx('readonly').get(id);
+      r.onsuccess = () => resolve(r.result);
+      r.onerror = e => reject(e.target.error);
+    });
+  },
+  async all(){
+    return new Promise((resolve, reject) => {
+      const r = this._tx('readonly').getAll();
+      r.onsuccess = () => resolve(r.result || []);
+      r.onerror = e => reject(e.target.error);
+    });
+  },
+  async clear(){
+    return new Promise((resolve, reject) => {
+      const r = this._tx('readwrite').clear();
+      r.onsuccess = () => { __log('DB','清空'); resolve(); };
+      r.onerror = e => reject(e.target.error);
+    });
+  }
+};
+
+/* ============================================================
+ * 工具函数
+ * ============================================================ */
+function uid(){ return Date.now()+'_'+Math.random().toString(36).slice(2,8); }
+
+/** 根据小时判定昼夜模式 */
+function classifyMode(h){
+  if(h>=5 && h<17) return 'day';
+  if(h>=17 && h<20) return 'dusk';
+  return 'night';
+}
+
+/** 多图决策：张数多者优先；平局取当天最后一张的模式 */
+function decideDayMode(items){
+  if(!items || !items.length) return null;
+  const counts = { day:0, dusk:0, night:0 };
+  items.forEach(it => counts[it.mode]++);
+  const max = Math.max(counts.day, counts.dusk, counts.night);
+  const winners = ['day','dusk','night'].filter(k => counts[k]===max);
+  if(winners.length === 1) return winners[0];
+  // 平局：取时间最晚那张
+  let latest = null, latestTime = -1;
+  items.forEach(it => {
+    const t = new Date(it.time).getTime();
+    if(t > latestTime){ latestTime = t; latest = it.mode; }
+  });
+  return latest;
+}
+
+/** 文件转 Base64 */
+function fileToBase64(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+/** 检查视频时长是否 ≤30 秒 */
+function checkVideoDuration(file){
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const v = document.createElement('video');
+    v.preload = 'metadata';
+    v.onloadedmetadata = () => { URL.revokeObjectURL(url); resolve(v.duration); };
+    v.onerror = () => { URL.revokeObjectURL(url); resolve(0); };
+    v.src = url;
+  });
+}
+
+function formatTime(iso){
+  const d = new Date(iso);
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function formatTimeShort(iso){
+  const d = new Date(iso);
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getMonth()+1}月${d.getDate()}日 ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+const modeLabels = { day:'白天 · azure', dusk:'黄昏 · dusk', night:'星夜 · night' };
+const modeMarks = {
+  day:'<svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="5" y1="5" x2="7" y2="7"/><line x1="17" y1="17" x2="19" y2="19"/><line x1="5" y1="19" x2="7" y2="17"/><line x1="17" y1="7" x2="19" y2="5"/></svg>',
+  dusk:'<svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+  night:'<svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
+};
+
+/* ============================================================
+ * 状态
+ * ============================================================ */
+let allMoments = [];          // 内存缓存
+let currentEncounter = null;  // 当前偶遇的卡片
+let publishMode = 'flash';    // 'flash' | 'memory'
+let pendingMedia = null;      // { type:'image'|'video', data:base64 }
+let pendingMemMedia = null;
+let calYear, calMonth;        // 日历当前年月
+// currentStratoTab 已废弃，改用 currentCat 处理封面卡片跳转
+
+/* ============================================================
+ * 本地身份 · 仅存浏览器，不联网
+ * skylog.identity = { name, avatar, createdAt }
+ * ============================================================ */
+const Identity = {
+  KEY: 'skylog.identity',
+  get(){
+    try{ return JSON.parse(localStorage.getItem(this.KEY)); }catch(e){ return null; }
+  },
+  set(o){
+    localStorage.setItem(this.KEY, JSON.stringify(o));
+    __log('身份','保存', o);
+  },
+  clear(){ localStorage.removeItem(this.KEY); }
+};
+
+function getIdentityName(){
+  const id = Identity.get();
+  return id && id.name ? id.name : '未命名的天空';
+}
+function getIdentityAvatar(){
+  const id = Identity.get();
+  return id && id.avatar ? id.avatar : '?';
+}
+
+function refreshIdentityUI(){
+  const name = getIdentityName();
+  const av = getIdentityAvatar();
+  document.getElementById('identityAv').textContent = av;
+  document.getElementById('identityName').textContent = name === '未命名的天空' ? '未命名' : name;
+  // hero meta 也带上名字
+  updateHeroMeta();
+}
+
+/* —— 头像下拉菜单 —— */
+function toggleIdentityMenu(e){
+  e.stopPropagation();
+  const dd = document.getElementById('identityDropdown');
+  dd.classList.toggle('show');
+}
+function closeIdentityMenu(){
+  const dd = document.getElementById('identityDropdown');
+  if(dd) dd.classList.remove('show');
+}
+document.addEventListener('click', closeIdentityMenu);
+
+/* —— 退出账号（清空身份+确认） —— */
+function logoutAccount(){
+  if(!confirm('确定退出账号？身份和本地的天空记录都会保留，只是清除当前身份信息。')) return;
+  Identity.clear();
+  localStorage.removeItem('skylog.identity');
+  refreshIdentityUI();
+  toast('已退出，下次见面时记得再回来看看这些天空');
+  closeIdentityMenu();
+}
+
+function openSettings(){
+  const id = Identity.get() || {};
+  document.getElementById('setName').value = id.name || '';
+  document.getElementById('setAvatar').value = id.avatar || '';
+  document.getElementById('settingsCount').textContent = allMoments.length;
+  document.getElementById('settingsModal').classList.add('show');
+  __log('设置','打开');
+}
+function closeSettings(){ document.getElementById('settingsModal').classList.remove('show'); }
+
+function saveIdentity(){
+  const name = document.getElementById('setName').value.trim();
+  const avatar = document.getElementById('setAvatar').value.trim();
+  if(!name){ toast('总要给这片天空起个名字吧'); return; }
+  if(!avatar){ toast('留一个字作为头像吧'); return; }
+  const existing = Identity.get() || {};
+  Identity.set({ name, avatar, createdAt: existing.createdAt || Date.now() });
+  refreshIdentityUI();
+  closeSettings();
+  toast('你的天空图册，现在叫「'+name+'」');
+}
+
+async function clearAllMoments(){
+  // 两步确认
+  if(!confirm('这将永久删除你在这个浏览器里的全部 '+allMoments.length+' 片天空记录，无法恢复。\n\n确定要清空整个图册吗？')){
+    return;
+  }
+  if(!confirm('再确认一次：所有天空都会消失，包括图片和文字。真的要清空吗？')){
+    return;
+  }
+  try{
+    await SkyDB.clear();
+    allMoments = [];
+    currentEncounter = null;
+    __log('设置','已清空整个图册');
+    closeSettings();
+    toast('所有天空都已飘走。图册重新开始。');
+    updateHeroMeta();
+    renderCatCovers();renderCatDetail();
+    renderGallery();
+    renderCalendar();
+  }catch(e){
+    __err('设置','清空失败', e);
+    toast('清空失败：'+e.message);
+  }
+}
+
+/* ============================================================
+ * 分享 · 让朋友也拥有自己的天空图册
+ * 三种方式：原生分享 / 复制链接 / 下载网页文件
+ * + 二维码（仅在线 URL 时）
+ * ============================================================ */
+function openShare(){
+  const url = window.location.href;
+  const isOnline = /^https?:\/\//.test(url);
+  const isFile = /^file:/.test(url);
+  const urlInput = document.getElementById('shareUrl');
+  const urlField = document.getElementById('shareUrlField');
+  const nativeBtn = document.getElementById('shareNativeBtn');
+  const qrWrap = document.getElementById('shareQRWrap');
+
+  // 原生分享按钮：仅移动端 + 在线 URL 时显示
+  if(navigator.share && isOnline){
+    nativeBtn.style.display = 'inline-flex';
+  } else {
+    nativeBtn.style.display = 'none';
+  }
+
+  if(isOnline){
+    // 在线：显示 URL + 二维码
+    urlInput.value = url;
+    urlField.style.display = 'block';
+    renderQRCode(url);
+    qrWrap.style.display = 'block';
+  } else if(isFile){
+    // 本地文件：URL 无意义，提示用下载方式
+    urlField.style.display = 'none';
+    qrWrap.style.display = 'none';
+  } else {
+    urlInput.value = url;
+    urlField.style.display = 'block';
+    qrWrap.style.display = 'none';
+  }
+
+  document.getElementById('shareModal').classList.add('show');
+  __log('分享','打开', { isOnline, isFile, url });
+}
+function closeShare(){ document.getElementById('shareModal').classList.remove('show'); }
+
+async function shareNative(){
+  try{
+    await navigator.share({
+      title: '这片天空比我更长久',
+      text: '来记录你抬头看见的每一片天空。',
+      url: window.location.href
+    });
+    __log('分享','原生分享完成');
+    closeShare();
+  }catch(e){
+    if(e.name !== 'AbortError'){
+      __err('分享','原生分享失败', e);
+      toast('分享取消');
+    }
+  }
+}
+
+function copyShareUrl(){
+  const url = document.getElementById('shareUrl').value;
+  if(!url){ toast('没有可复制的链接'); return; }
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(url).then(() => {
+      toast('链接已复制，发给朋友吧');
+      __log('分享','链接已复制');
+    }).catch(() => fallbackCopy(url));
+  } else {
+    fallbackCopy(url);
+  }
+}
+function fallbackCopy(text){
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); toast('链接已复制，发给朋友吧'); }
+  catch(e){ toast('复制失败，请手动复制'); }
+  document.body.removeChild(ta);
+}
+
+/** 下载网页文件：克隆当前文档、清空动态内容、保存为 .html */
+function downloadWebpage(){
+  try{
+    const clone = document.documentElement.cloneNode(true);
+    // 清空所有动态渲染区，避免把当前用户的数据带到朋友的文件里
+    const cleanIds = ['catDetailStream','galleryGrid','calGrid','detailBody','galleryCount','encounterCount','retraceCount','ratioBar','ratioVals','identityAv','identityName','settingsCount','shareUrl','setName','setAvatar','flashTime','flashLoc','flashText','memDate','memBody1','memBody2','memLoc'];
+    cleanIds.forEach(id => {
+      const el = clone.querySelector('#'+id);
+      if(!el) return;
+      if(el.tagName === 'INPUT' || el.tagName === 'TEXTAREA'){ el.value = ''; }
+      else if(id === 'identityAv'){ el.textContent = '?'; }
+      else if(id === 'identityName'){ el.textContent = '未命名'; }
+      else if(id === 'galleryCount' || id === 'encounterCount' || id === 'retraceCount'){ el.textContent = '0'; }
+      else { el.innerHTML = ''; }
+    });
+    // 移除弹窗 show 状态、表单值、预览
+    clone.querySelectorAll('.modal-bg').forEach(el => el.classList.remove('show'));
+    clone.querySelectorAll('.preview-wrap').forEach(el => el.classList.remove('show'));
+    clone.querySelectorAll('input[type="text"], input[type="password"], textarea').forEach(el => { el.value = ''; });
+
+    const html = '<!DOCTYPE html>\n' + clone.outerHTML;
+    const blob = new Blob([html], { type:'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = '这片天空比我更长久.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('网页文件已下载，把它发给朋友吧');
+    __log('分享','网页文件已下载');
+  }catch(e){
+    __err('分享','下载网页失败', e);
+    toast('下载失败：'+e.message);
+  }
+}
+
+/** QR 码 · 用在线服务生成（仅在线 URL 时调用，不涉及本地数据上传） */
+function renderQRCode(text){
+  const box = document.getElementById('shareQRBox');
+  if(!box) return;
+  box.innerHTML = '<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=8&color=2b3340&bgcolor=ffffff&data='+encodeURIComponent(text)+'" width="200" height="200" alt="扫码打开" style="display:block" onerror="this.parentNode.innerHTML=\'<div style=font-size:11px;color:#888;padding:20px>二维码加载失败<br>请用复制链接代替</div>\'">';
+}
+
+/* ============================================================
+ * 时刻气韵切换 · 顶部固定 #F0F9FF，底部随时段变化
+ * 晨曦 05-08 / 白昼 08-17 / 黄昏 17-20 / 星夜 20-05
+ * ============================================================ */
+const moodList = [
+  {from:5,to:8,key:'dawn'},
+  {from:8,to:17,key:'day'},
+  {from:17,to:20,key:'dusk'},
+  {from:20,to:24,key:'night'},
+  {from:0,to:5,key:'night'},
+];
+function applyMood(){
+  const h = new Date().getHours();
+  const m = moodList.find(x => h>=x.from && h<x.to) || moodList[1];
+  document.body.dataset.mood = m.key;
+}
+
+/* ============================================================
+ * 初始化
+ * ============================================================ */
+async function init(){
+  try{
+    applyMood();
+    setInterval(applyMood, 60*1000);
+    await SkyDB.init();
+    allMoments = await SkyDB.all();
+    allMoments.sort((a,b) => new Date(b.time) - new Date(a.time));
+    __log('系统','启动', { 天空数: allMoments.length });
+    const now = new Date();
+    calYear = now.getFullYear();
+    calMonth = now.getMonth();
+    refreshIdentityUI();          // 身份徽章
+    // 首次访问且未命名：自动弹设置引导起名
+    if(!Identity.get()){
+      __log('身份','首次访问，引导起名');
+      setTimeout(() => {
+        toast('欢迎。先给这片天空图册起个名字吧');
+        setTimeout(openSettings, 800);
+      }, 600);
+    }
+    updateHeroMeta();
+    renderCatCovers();renderCatDetail();
+    renderGallery();
+    renderCalendar();
+  }catch(e){
+    __err('系统','启动失败', e);
+    toast('天空日志初始化失败：'+e.message);
+  }
+}
+
+function updateHeroMeta(){
+  const n = allMoments.length;
+  __log('系统','天空数更新', { count: n });
+}
+
+/* ============================================================
+ * 视图切换
+ * ============================================================ */
+function go(view){
+  const current = document.querySelector('.view.active');
+  const targetId = 'view-'+view;
+  if(current && current.id === targetId){ __log('视图','已是 → '+view); return; }
+  // 飞向哪里？若从 strato→calendar，把大卡片飞到 currentEncounter 对应日期格方向
+  if(currentEncounter && view==='calendar'){
+    const d = new Date(currentEncounter.time);
+    const day = d.getDate();
+    const firstDay = new Date(d.getFullYear(), d.getMonth(), 1).getDay();
+    const col = (firstDay + day - 1) % 7;
+    const row = Math.floor((firstDay + day - 1) / 7);
+    // 目标位移（相对大卡片）：右偏→右下
+    const tx = (col - 3) * 140 + 'px';
+    const ty = (row + 1) * 60 + 'px';
+    current.style.setProperty('--fly-to', tx+' '+ty);
+  }
+  const doSwitch = () => {
+    if(current){ current.classList.remove('active','leaving'); }
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    const t = document.getElementById(targetId) || document.getElementById('view-strato');
+    t.classList.add('active');
+    document.querySelectorAll('.nav-tab').forEach(b => b.classList.toggle('active', b.dataset.view===view));
+    window.scrollTo({top:0, behavior:'smooth'});
+    if(view==='strato') renderCatCovers();
+    if(view==='catdetail') renderCatDetail();
+    if(view==='gallery') renderGallery();
+    if(view==='calendar') {
+      renderCalendar();
+      // 给日历格子依次分配弹入延迟
+      requestAnimationFrame(() => {
+        const cells = document.querySelectorAll('#view-calendar .day-cell');
+        cells.forEach((c, i) => {
+          c.style.setProperty('--cell-delay', Math.round((i%7 + Math.floor(i/7)*2) * 28) + 'ms');
+        });
+      });
+    }
+    __log('视图','切换 → '+view);
+  };
+  if(current){
+    current.classList.add('leaving');
+    setTimeout(doSwitch, 420);
+  } else {
+    doSwitch();
+  }
+}
+
+/* ============================================================
+ * Toast
+ * ============================================================ */
+let toastT;
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+/* ============================================================
+ * 平流层 · 双分类封面卡片
+ * ============================================================ */
+let currentCat = null; // 当前详情页分类
+
+function renderCatCovers(){
+  const cats = ['encounter','retrace'];
+  cats.forEach(cat => {
+    const items = allMoments.filter(m => m.category === cat);
+    const countEl = document.getElementById(cat+'Count');
+    const coverEl = document.getElementById('cover-'+cat);
+    if(countEl) countEl.textContent = items.length + ' 片天空';
+    if(!coverEl) return;
+    // 清空旧封面图
+    const oldImg = coverEl.querySelector('.cover-img');
+    if(oldImg) oldImg.remove();
+    const oldPh = coverEl.querySelector('.cover-placeholder');
+    if(items.length > 0){
+      const sorted = [...items].sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+      const latest = sorted[0];
+      if(latest.type === 'image'){
+        // 有图：显示最新图片为封面
+        const img = document.createElement('img');
+        img.className = 'cover-img';
+        img.src = latest.media;
+        img.alt = '';
+        img.oncontextmenu = () => false;
+        img.draggable = false;
+        coverEl.insertBefore(img, coverEl.querySelector('.cover-content'));
+        coverEl.classList.add('has-media');
+        coverEl.classList.remove('empty');
+        if(oldPh) oldPh.remove();
+      } else if(latest.type === 'video'){
+        const vid = document.createElement('video');
+        vid.className = 'cover-img';
+        vid.src = latest.media;
+        vid.muted = true;
+        vid.loop = true;
+        vid.playsInline = true;
+        vid.autoplay = true;
+        vid.oncontextmenu = () => false;
+        coverEl.insertBefore(vid, coverEl.querySelector('.cover-content'));
+        coverEl.classList.add('has-media');
+        coverEl.classList.remove('empty');
+        if(oldPh) oldPh.remove();
+      } else {
+        // 纯文字：透明
+        coverEl.classList.add('empty');
+        coverEl.classList.remove('has-media');
+      }
+    } else {
+      // 空状态
+      coverEl.classList.add('empty');
+      coverEl.classList.remove('has-media');
+    }
+  });
+  __log('平流层','封面渲染', { encounter: allMoments.filter(m=>m.category==='encounter').length, retrace: allMoments.filter(m=>m.category==='retrace').length });
+}
+
+/* 点击封面卡片 → 进入分类详情 */
+function enterCat(cat){
+  currentCat = cat;
+  const titleEl = document.getElementById('catDetailTitle');
+  const subEl = document.getElementById('catDetailSub');
+  const catName = cat === 'retrace' ? '回溯' : '邂逅';
+  const items = allMoments.filter(m => m.category === cat);
+  titleEl.textContent = catName;
+  subEl.textContent = items.length > 0
+    ? `共 ${items.length} 片天空 · 最久的记忆`
+    : '还没有内容，去发布一片天空吧';
+  go('catdetail');
+}
+
+/* 从分类详情返回 */
+function backFromCat(){
+  go('strato');
+}
+
+/* 渲染分类详情的卡片流 */
+function renderCatDetail(){
+  const box = document.getElementById('catDetailStream');
+  if(!box) return;
+  if(!currentCat) { box.innerHTML=''; return; }
+  const items = allMoments.filter(m => m.category === currentCat);
+  const catName = currentCat === 'retrace' ? '回溯' : '邂逅';
+  if(items.length === 0){
+    box.innerHTML = `
+      <div class="sc-empty">
+        <div class="ico">${currentCat === 'retrace' ? '<svg class=\"ico-svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"width:32px;height:32px\"><polygon points=\"12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2\"/></svg>' : '<svg class=\"ico-svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"width:32px;height:32px\"><path d=\"M17.5 19a4.5 4.5 0 1 0-1.41-8.775 5.5 5.5 0 0 0-10.59 2.33A4 4 0 0 0 5.5 19h12z\"/></svg>'}</div>
+        <h3>还没有${catName}</h3>
+        <p>点击标题旁的小云朵，发布你的第一片${catName}天空。</p>
+      </div>`;
+    return;
+  }
+  const sorted = [...items].sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+  const top5 = sorted.slice(0, 5);
+  box.innerHTML = top5.map(m => {
+    let mediaHtml = '';
+    if(m.type === 'image'){
+      mediaHtml = `<img src="${m.media}" alt="" oncontextmenu="return false" draggable="false">`;
+    } else if(m.type === 'video'){
+      mediaHtml = `<video src="${m.media}" muted loop playsinline oncontextmenu="return false"></video>`;
+    } else {
+      mediaHtml = `<div class="sc-placeholder">— 纯文字 —</div>`;
+    }
+    const catLabel = m.category === 'retrace' ? '回溯' : '邂逅';
+    const textDisplay = (m.text || '（这一刻的天空，没说什么，只是被记下了。）').replace(/</g,'&lt;');
+    const titleWord = m.category === 'retrace' ? '回望' : '邂逅';
+    return `
+      <div class="stream-card" onclick="showDetail('${m.id}')">
+        <div class="sc-media">
+          ${mediaHtml}
+          <div class="sc-overlay">
+            <div class="sc-cat">${catLabel} · ${modeLabels[m.mode]||''}</div>
+            <div class="sc-title">${titleWord}这片天空<em>·</em></div>
+            <div class="sc-when">${formatTimeShort(m.time)} · ${m.location||'天空之上'}</div>
+          </div>
+        </div>
+        <div class="sc-body">
+          <div class="sc-text">${textDisplay}</div>
+          <button class="sc-action" onclick="event.stopPropagation();showDetail('${m.id}')">细看这片天空</button>
+        </div>
+      </div>`;
+  }).join('');
+  __log('分类详情','渲染', { cat: currentCat, count: top5.length });
+}
+
+/* 保留 roam() 供内部调用（exportPoster 需要 currentEncounter） */
+function roam(){
+  if(allMoments.length === 0){ currentEncounter = null; return; }
+  let next;
+  do { next = allMoments[Math.floor(Math.random()*allMoments.length)]; }
+  while(allMoments.length>1 && currentEncounter && next.id===currentEncounter.id);
+  currentEncounter = next;
+}
+
+/* ============================================================
+ * 发布弹窗 · 双模式
+ * ============================================================ */
+function openPublish(){
+  // 自动填入当前时间
+  const now = new Date();
+  document.getElementById('flashTime').value = formatTime(now.toISOString());
+  document.getElementById('publishTitle').innerHTML = '邂逅<em>— 像寄出一张即时的明信片</em>';
+  switchMode('flash', document.querySelector('.mode-tabs button'));
+  document.getElementById('publishModal').classList.add('show');
+  __log('发布','打开弹窗');
+}
+function closePublish(){ document.getElementById('publishModal').classList.remove('show'); }
+
+function switchMode(mode, btn){
+  publishMode = mode;
+  document.querySelectorAll('.mode-tabs button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('flashMode').style.display = mode==='flash' ? 'block' : 'none';
+  document.getElementById('memoryMode').style.display = mode==='memory' ? 'block' : 'none';
+  document.getElementById('publishTitle').innerHTML = mode==='flash'
+    ? '邂逅<em>— 像寄出一张即时的明信片</em>'
+    : '回溯<em>— 把那一日的天空，慢慢折成一封信</em>';
+  __log('发布','模式 → '+mode);
+}
+
+async function handleMedia(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  // 校验视频时长
+  if(file.type.startsWith('video/')){
+    const dur = await checkVideoDuration(file);
+    if(dur > 30){ toast('短视频不能超过 30 秒哦'); event.target.value=''; return; }
+  }
+  // 校验大小（限制 50MB，避免 IndexedDB 爆掉）
+  if(file.size > 50*1024*1024){ toast('文件太大了，请选小一点的'); event.target.value=''; return; }
+  try{
+    const base64 = await fileToBase64(file);
+    pendingMedia = { type: file.type.startsWith('image/')?'image':'video', data: base64 };
+    const box = document.getElementById('previewBox');
+    box.innerHTML = pendingMedia.type==='image'
+      ? `<img src="${base64}">`
+      : `<video src="${base64}" controls playsinline></video>`;
+    document.getElementById('previewWrap').classList.add('show');
+    __log('发布','媒体已选', { type:pendingMedia.type, size:Math.round(file.size/1024)+'KB' });
+  }catch(e){ __err('发布','读取文件失败', e); toast('读取文件失败'); }
+}
+function clearMedia(e){
+  e.stopPropagation();
+  pendingMedia = null;
+  document.getElementById('previewBox').innerHTML = '';
+  document.getElementById('previewWrap').classList.remove('show');
+  document.getElementById('mediaInput').value = '';
+}
+
+async function handleMemMedia(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  if(file.type.startsWith('video/')){
+    const dur = await checkVideoDuration(file);
+    if(dur > 30){ toast('短视频不能超过 30 秒'); event.target.value=''; return; }
+  }
+  if(file.size > 50*1024*1024){ toast('文件太大了'); event.target.value=''; return; }
+  try{
+    const base64 = await fileToBase64(file);
+    pendingMemMedia = { type: file.type.startsWith('image/')?'image':'video', data: base64 };
+    const box = document.getElementById('memPreviewBox');
+    box.innerHTML = pendingMemMedia.type==='image'
+      ? `<img src="${base64}">`
+      : `<video src="${base64}" controls playsinline></video>`;
+    document.getElementById('memPreviewWrap').classList.add('show');
+  }catch(e){ __err('发布','回忆媒体读取失败', e); toast('读取文件失败'); }
+}
+function clearMemMedia(e){
+  e.stopPropagation();
+  pendingMemMedia = null;
+  document.getElementById('memPreviewBox').innerHTML = '';
+  document.getElementById('memPreviewWrap').classList.remove('show');
+  document.getElementById('memMediaInput').value = '';
+}
+
+/** 发布：写入 IndexedDB */
+async function publish(){
+  try{
+    let item;
+    const now = new Date();
+    if(publishMode === 'flash'){
+      const text = document.getElementById('flashText').value.trim();
+      const loc = document.getElementById('flashLoc').value.trim() || '天空之上';
+      if(!pendingMedia && !text){ toast('总要留下点什么——一片云，或一句话'); return; }
+      item = {
+        id: uid(),
+        type: pendingMedia ? pendingMedia.type : 'essay',
+        media: pendingMedia ? pendingMedia.data : null,
+        text: text || '',
+        time: now.toISOString(),
+        location: loc,
+        mode: classifyMode(now.getHours()),
+        category: 'encounter',
+        createdAt: now.getTime()
+      };
+    } else {
+      const date = document.getElementById('memDate').value.trim();
+      const body1 = document.getElementById('memBody1').value.trim();
+      const body2 = document.getElementById('memBody2').value.trim();
+      const loc = document.getElementById('memLoc').value.trim() || '天空之上';
+      const combined = (date ? '【'+date+'】\n\n' : '') + (body1 || '') + (body2 ? '\n\n'+body2 : '');
+      if(!combined.trim() && !pendingMemMedia){ toast('总要留下点什么'); return; }
+      // 回忆模式：用用户填的日期解析时间，无则用当前
+      let itemTime = now;
+      if(date){
+        const parsed = new Date(date.replace(/年|月/g,'/').replace(/日/g,''));
+        if(!isNaN(parsed)) itemTime = parsed;
+      }
+      item = {
+        id: uid(),
+        type: pendingMemMedia ? pendingMemMedia.type : 'essay',
+        media: pendingMemMedia ? pendingMemMedia.data : null,
+        text: combined || '',
+        time: itemTime.toISOString(),
+        location: loc,
+        mode: classifyMode(itemTime.getHours()),
+        category: 'retrace',
+        createdAt: now.getTime()
+      };
+    }
+    await SkyDB.add(item);
+    allMoments.unshift(item);
+    allMoments.sort((a,b) => new Date(b.time) - new Date(a.time));
+    __log('发布','成功', { id:item.id, type:item.type, mode:item.mode });
+    // 清理表单
+    document.getElementById('flashText').value = '';
+    document.getElementById('memDate').value = '';
+    document.getElementById('memBody1').value = '';
+    document.getElementById('memBody2').value = '';
+    clearMedia({stopPropagation:()=>{}});
+    clearMemMedia({stopPropagation:()=>{}});
+    closePublish();
+    toast('这片天空，已被妥帖地放进平流层');
+    updateHeroMeta();
+    renderCatCovers();renderCatDetail();
+    renderGallery();
+    renderCalendar();
+  }catch(e){
+    __err('发布','失败', e);
+    toast('发布失败：'+e.message);
+  }
+}
+
+/* ============================================================
+ * 我的图册
+ * ============================================================ */
+function renderGallery(){
+  const grid = document.getElementById('galleryGrid');
+  document.getElementById('galleryCount').textContent = allMoments.length;
+  if(allMoments.length === 0){
+    grid.innerHTML = '<div style="grid-column:1/-1;padding:50px;text-align:center;font-family:var(--serif);font-style:italic;color:var(--ink-faint)">还没有天空被留住。按下右下角的相机，开始记录吧。</div>';
+    return;
+  }
+  grid.innerHTML = allMoments.map(m => {
+    let inner;
+    if(m.type === 'image') inner = `<img src="${m.media}" alt="" draggable="false">`;
+    else if(m.type === 'video') inner = `<video src="${m.media}" muted></video>`;
+    else inner = `<div class="essay-mark">${(m.text||'').slice(0,40)}…</div>`;
+    return `<div class="gallery-item" onclick="showDetail('${m.id}')">${inner}<div class="cap">${formatTimeShort(m.time)} · ${m.location||'天空之上'}</div></div>`;
+  }).join('');
+}
+
+function showDetail(id){
+  const m = allMoments.find(x => x.id===id);
+  if(!m) return;
+  currentEncounter = m;
+  let media = '';
+  if(m.type === 'image') media = `<div class="detail-media"><img src="${m.media}" alt=""></div>`;
+  else if(m.type === 'video') media = `<div class="detail-media"><video src="${m.media}" controls playsinline></video></div>`;
+  const catLabel = m.category === 'retrace' ? '回溯' : '邂逅';
+  document.getElementById('detailBody').innerHTML = `
+    ${media}
+    <div class="detail-when">${formatTime(m.time)}</div>
+    <div class="detail-loc">— ${m.location||'天空之上'} · ${modeLabels[m.mode]||''} · ${catLabel}</div>
+    <div class="detail-text">${(m.text||'').replace(/</g,'&lt;')}</div>
+    <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="exportPoster()"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>导出海报</button>
+      <button class="btn" onclick="openShareSky()"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>分享天空</button>
+      <button class="btn btn-ghost" onclick="confirmDelete('${m.id}')"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>删除这片天空</button>
+      <button class="btn" onclick="closeDetail()">合上</button>
+    </div>`;
+  document.getElementById('detailModal').classList.add('show');
+}
+function closeDetail(){ document.getElementById('detailModal').classList.remove('show'); }
+
+/* —— 分享天空 · 弹窗与功能 —— */
+function openShareSky(){
+  if(!currentEncounter){ toast('先选一片天空吧'); return; }
+  const m = currentEncounter;
+  const preview = document.getElementById('shareSkyPreview');
+  const img = document.getElementById('shareSkyImg');
+  const info = document.getElementById('shareSkyInfo');
+  if(m.type === 'image'){
+    preview.style.display = 'block';
+    img.src = m.media;
+    info.textContent = `「${m.location||'天空之上'}」· ${formatTimeShort(m.time)}`;
+  } else {
+    preview.style.display = 'none';
+    info.textContent = m.text ? `分享这条天空：${m.text.slice(0,30)}${m.text.length>30?'…':''}` : '分享这片天空';
+  }
+  document.getElementById('shareSkyModal').classList.add('show');
+  __log('分享','打开天空分享弹窗', m.id);
+}
+function closeShareSky(){ document.getElementById('shareSkyModal').classList.remove('show'); }
+
+/* 复制图片（走海报 canvas 生成 → PNG → 剪贴板） */
+async function shareSkyCopyImage(){
+  if(!currentEncounter){ toast('选一片天空再分享吧'); return; }
+  toast('正在生成图片……');
+  try{
+    const canvas = document.getElementById('posterCanvas');
+    const m = currentEncounter;
+    // 若有图，直接用图片数据；无图用 canvas 生成海报
+    if(m.type === 'image'){
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      await new Promise((rs,rj)=>{ img.onload=rs; img.onerror=rj; img.src=m.media; });
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img,0,0);
+    } else {
+      // 纯文字或视频：走海报 canvas 渲染（借用 exportPoster 的逻辑）
+      await exportPosterCore(canvas, m, true);
+    }
+    canvas.toBlob(async (blob) => {
+      if(!blob){ toast('图片生成失败'); return; }
+      try{
+        await navigator.clipboard.write([
+          new ClipboardItem({ [blob.type]: blob })
+        ]);
+        toast('图片已复制，直接粘贴给朋友即可');
+        closeShareSky();
+      }catch(err){
+        // 降级：直接下载
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `sky_${m.id||Date.now()}.png`;
+        a.click();
+        toast('已自动保存为图片（浏览器不支持直接复制）');
+        closeShareSky();
+      }
+    }, 'image/png');
+  }catch(e){
+    console.error(e);
+    toast('复制图片失败，请尝试「复制链接」');
+  }
+}
+
+/* 复制链接（把当前 moment 打包到 URL hash 或用当前页面链接） */
+function shareSkyCopyLink(){
+  if(!currentEncounter){ toast('选一片天空再分享吧'); return; }
+  const m = currentEncounter;
+  // 方案：使用当前页面链接 + 不破坏本地数据；若部署了公开静态页可直接复制
+  const url = window.location.href;
+  try{
+    navigator.clipboard.writeText(url);
+    toast('链接已复制，发给朋友即可浏览');
+    __log('分享','复制链接', url);
+    closeShareSky();
+  }catch(e){
+    // 降级：prompt
+    prompt('复制以下链接分享：', url);
+  }
+}
+
+/* exportPosterCore：无 UI 版海报渲染（供分享调用）。内部调用 exportPoster 生成后返回 blob */
+async function exportPosterCore(canvas, m, silent){
+  // 复现 exportPoster 的逻辑，把结果画到传入的 canvas
+  // 此处直接复用 exportPoster 函数：先临时记录 currentEncounter
+  const old = currentEncounter;
+  currentEncounter = m;
+  try{
+    await new Promise(async (resolve) => {
+      // 用 exportPoster 实际绘制（不触发 toast），以静默方式完成
+      // 直接在 canvas 上生成：调用 exportPoster
+      // exportPoster 内部会用 posterCanvas 绘制，这里直接等它完成
+      const _toast = window.toast;
+      if(silent) window.toast = ()=>{}; // 静默
+      const ok = await exportPoster();
+      if(silent) window.toast = _toast;
+      resolve(ok);
+    });
+    // 如果 canvas 不是 posterCanvas，就把 posterCanvas 的内容拷过去
+    const pc = document.getElementById('posterCanvas');
+    if(pc && canvas !== pc && pc.width){
+      canvas.width = pc.width; canvas.height = pc.height;
+      canvas.getContext('2d').drawImage(pc,0,0);
+    }
+  }finally{
+    currentEncounter = old;
+  }
+}
+
+function confirmDelete(id){
+  if(!confirm('确定要删掉这片天空吗？它将永远消失。')) return;
+  SkyDB.delete(id).then(() => {
+    allMoments = allMoments.filter(m => m.id !== id);
+    closeDetail();
+    toast('那片天空，已经飘走了');
+    updateHeroMeta();
+    renderCatCovers();renderCatDetail();
+    renderGallery();
+    renderCalendar();
+  });
+}
+
+/* ============================================================
+ * 天空日历
+ * ============================================================ */
+const monthNames = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+
+function renderCalendar(){
+  document.getElementById('calTitle').innerHTML = `岁月晴雨表 <em>· ${calYear}</em>`;
+  document.getElementById('calSwitch').textContent = `${calYear} · ${monthNames[calMonth]}`;
+  // 该月所有 moments
+  const monthItems = allMoments.filter(m => {
+    const d = new Date(m.time);
+    return d.getFullYear()===calYear && d.getMonth()===calMonth;
+  });
+  // 按日分组
+  const byDay = {};
+  monthItems.forEach(m => {
+    const day = new Date(m.time).getDate();
+    if(!byDay[day]) byDay[day] = [];
+    byDay[day].push(m);
+  });
+  // 占比：按每条记录的 mode 直接统计（该时段发布数 / 本月总数）
+  let day=0, dusk=0, night=0;
+  monthItems.forEach(m => {
+    if(m.mode==='day') day++;
+    else if(m.mode==='dusk') dusk++;
+    else if(m.mode==='night') night++;
+  });
+  const total = day+dusk+night || 1;
+  const np = (night/total*100).toFixed(0);
+  const hp = (dusk/total*100).toFixed(0);
+  const dp = (day/total*100).toFixed(0);
+  // 顺序：黑夜(n) · 黄昏(h) · 白天(d)  （由 CSS order 保证）
+  document.getElementById('ratioBar').innerHTML = `
+    <div class="seg-n" style="width:${np}%"><span>${np>0?np+'% 黑夜':''}</span></div>
+    <div class="seg-h" style="width:${hp}%"><span>${hp>0?hp+'% 黄昏':''}</span></div>
+    <div class="seg-d" style="width:${dp}%"><span>${dp>0?dp+'% 白天':''}</span></div>`;
+  document.getElementById('ratioVals').innerHTML = `
+    <span>黑夜 ${np}%</span>
+    <span>黄昏 ${hp}%</span>
+    <span>白天 ${dp}%</span>
+    <span>· 共 ${day+dusk+night} 片天空</span>`;
+  // 网格
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  for(let i=0;i<firstDay;i++) grid.insertAdjacentHTML('beforeend','<div style="visibility:hidden"></div>');
+  for(let d=1; d<=daysInMonth; d++){
+    const items = byDay[d];
+    const mode = items ? decideDayMode(items) : null;
+    const cell = document.createElement('div');
+    cell.className = 'day-cell ' + (mode || 'empty');
+    let html = '';
+    if(!mode) html += '<div class="rainbow"></div>';
+    html += `<span class="dnum">${d}</span>`;
+    if(items){
+      // 多图：选一张代表性缩略图（优先图片，其次视频首帧）
+      const thumb = items.find(it => it.type==='image') || items[0];
+      if(thumb && thumb.type==='image'){
+        html += `<img src="${thumb.media}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0">`;
+      } else if(thumb && thumb.type==='video'){
+        html += `<video class="cal-video" data-src="${thumb.media}" muted loop playsinline style="width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0" poster=""></video>`;
+      } else if(thumb && thumb.type==='essay'){
+        html += `<span class="essay-mark">${(thumb.text||'').slice(0,60).replace(/</g,'&lt;')}</span>`;
+      }
+      // 缩略图上加一层柔和渐变遮罩，保证日期数字可读
+      html += `<span style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.18) 0%,rgba(255,255,255,0) 45%,rgba(0,0,0,.15) 100%);pointer-events:none"></span>`;
+      html += `<span class="count">${items.length}</span>`;
+      html += `<span class="mode-mark">${modeMarks[mode]||''}</span>`;
+    }
+    cell.innerHTML = html;
+    // Hover 视频预览
+    if(items){
+      const videoItem = items.find(it => it.type==='video');
+      if(videoItem){
+        cell.addEventListener('mouseenter', () => {
+          const v = cell.querySelector('video.cal-video');
+          if(!v) return;
+          if(!v.src) v.src = videoItem.media;
+          v.muted = true;
+          const p = v.play();
+          if(p && p.catch) p.catch(()=>{});
+        });
+        cell.addEventListener('mouseleave', () => {
+          const v = cell.querySelector('video.cal-video');
+          if(!v) return;
+          v.pause();
+        });
+        // 触屏：点击先预览再打开详情
+        cell.addEventListener('touchstart', (e) => {
+          const v = cell.querySelector('video.cal-video');
+          if(!v || v.src) return;
+          v.src = videoItem.media;
+          v.muted = true;
+          const p = v.play();
+          if(p && p.catch) p.catch(()=>{});
+          setTimeout(() => { try{ v.pause(); }catch(e){} }, 4000);
+        }, { once:false, passive:true });
+      }
+    }
+    cell.onclick = () => {
+      if(items){
+        const m = items[0];
+        toast(`${calMonth+1}月${d}日 · ${modeLabels[mode]} · ${items.length} 片天空`);
+        showDetail(m.id);
+      } else {
+        toast(`${calMonth+1}月${d}日 · 这一天没有留下天空，只有彩虹的微光`);
+      }
+    };
+    grid.appendChild(cell);
+  }
+  __log('日历','渲染', { year:calYear, month:calMonth+1, items:monthItems.length });
+}
+
+function prevMonth(){
+  calMonth--;
+  if(calMonth < 0){ calMonth = 11; calYear--; }
+  renderCalendar();
+}
+function nextMonth(){
+  calMonth++;
+  if(calMonth > 11){ calMonth = 0; calYear++; }
+  renderCalendar();
+}
+
+/* ============================================================
+ * 导出海报 · 全图背景 + 下1/3毛玻璃
+ * ============================================================ */
+async function exportPoster(){
+  if(!currentEncounter){ toast('先选一片天空吧'); return; }
+  const m = currentEncounter;
+  toast('正在渲染海报……');
+  try{
+    const canvas = document.getElementById('posterCanvas');
+    const ctx = canvas.getContext('2d');
+    const W = 1080, H = 1350;
+    canvas.width = W; canvas.height = H;
+
+    // —— 获取媒体源（图片或视频首帧） ——
+    let source = null, sw = 0, sh = 0;
+    if(m.media && m.type === 'image'){
+      source = new Image();
+      await new Promise((res, rej) => { source.onload = res; source.onerror = rej; source.src = m.media; });
+      sw = source.width; sh = source.height;
+    } else if(m.media && m.type === 'video'){
+      source = document.createElement('video');
+      source.src = m.media;
+      source.muted = true;
+      await new Promise(res => { source.onloadeddata = res; source.onerror = res; });
+      try { await source.play(); source.pause(); source.currentTime = 0; } catch(e){}
+      sw = source.videoWidth; sh = source.videoHeight;
+    }
+
+    // —— 1. 绘制全图背景（cover 模式铺满） ——
+    if(source && sw && sh){
+      const ratio = Math.max(W / sw, H / sh);
+      const dw = sw * ratio, dh = sh * ratio;
+      const dx = (W - dw) / 2, dy = (H - dh) / 2;
+      ctx.drawImage(source, dx, dy, dw, dh);
+    } else {
+      // 纯文字：用晴空渐变兜底
+      const bg = ctx.createLinearGradient(0, 0, 0, H);
+      bg.addColorStop(0, '#dceaf5');
+      bg.addColorStop(0.5, '#b8d8ed');
+      bg.addColorStop(1, '#a8c8e0');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    // —— 2. 下 1/3 毛玻璃虚化 ——
+    const glassTop = Math.floor(H * 2 / 3);   // 毛玻璃起始 y
+    const glassH = H - glassTop;
+
+    if(source && sw && sh){
+      // 在下 1/3 区域重绘模糊版图片
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, glassTop, W, glassH);
+      ctx.clip();
+      ctx.filter = 'blur(14px)';
+      const ratio = Math.max(W / sw, H / sh);
+      const dw = sw * ratio, dh = sh * ratio;
+      const dx = (W - dw) / 2, dy = (H - dh) / 2;
+      ctx.drawImage(source, dx, dy, dw, dh);
+      ctx.filter = 'none';
+      ctx.restore();
+    }
+
+    // 半透明白色蒙层（毛玻璃质感）
+    ctx.fillStyle = 'rgba(255,255,255,0.42)';
+    ctx.fillRect(0, glassTop, W, glassH);
+
+    // 2/3 处柔和过渡渐变（避免硬边）
+    const transH = 80;
+    const transGrad = ctx.createLinearGradient(0, glassTop - transH, 0, glassTop + 20);
+    transGrad.addColorStop(0, 'rgba(255,255,255,0)');
+    transGrad.addColorStop(1, 'rgba(255,255,255,0.42)');
+    ctx.fillStyle = transGrad;
+    ctx.fillRect(0, glassTop - transH, W, transH + 20);
+
+    // —— 3. 主体文字（古典衬线居中） ——
+    const mainText = (m.text && m.text.trim()) ? m.text.trim() : '这片天空比我更长久';
+    ctx.fillStyle = '#3d4a5c';
+    ctx.font = '300 36px "Noto Serif SC", "Songti SC", "STSong", serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    // 自动换行
+    const maxTextW = W - 140;
+    const textLines = wrapText(ctx, mainText, maxTextW);
+    let textY = glassTop + glassH * 0.32;
+    textLines.forEach(line => {
+      ctx.fillText(line, W / 2, textY);
+      textY += 50;
+    });
+
+    // —— 4. 底部信息（极细字体） ——
+    const d = new Date(m.time);
+    const pad = n => String(n).padStart(2, '0');
+    const ymd = `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}`;
+    const hm = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    const modeEn = { day:'Daylight', dusk:'Twilight', night:'Midnight' }[m.mode] || 'Daylight';
+    const loc = m.location || '天空之上';
+    const infoLine = `${ymd} ${hm} · ${loc} · ${modeEn}`;
+
+    ctx.fillStyle = 'rgba(61,74,92,0.55)';
+    ctx.font = '300 16px "Fraunces", "Noto Serif SC", serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    // 字间距通过逐字绘制模拟
+    ctx.fillText(infoLine, W / 2, H - 70);
+
+    // 极细分隔线
+    ctx.strokeStyle = 'rgba(61,74,92,0.18)';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(W * 0.25, H - 95);
+    ctx.lineTo(W * 0.75, H - 95);
+    ctx.stroke();
+
+    // —— 下载 ——
+    const link = document.createElement('a');
+    link.download = `这片天空_${ymd.replace(/\./g,'')}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    toast('海报已保存到下载文件夹');
+    __log('海报','导出成功', { id: m.id, text: mainText.slice(0,20) });
+  }catch(e){
+    __err('海报','导出失败', e);
+    toast('海报导出失败：'+e.message);
+  }
+}
+
+function roundRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.arcTo(x+w, y, x+w, y+h, r);
+  ctx.arcTo(x+w, y+h, x, y+h, r);
+  ctx.arcTo(x, y+h, x, y, r);
+  ctx.arcTo(x, y, x+w, y, r);
+  ctx.closePath();
+}
+function wrapText(ctx, text, maxW){
+  const lines = [];
+  text.split('\n').forEach(para => {
+    let line = '';
+    for(let i=0;i<para.length;i++){
+      const test = line + para[i];
+      if(ctx.measureText(test).width > maxW && line){
+        lines.push(line);
+        line = para[i];
+      } else { line = test; }
+    }
+    if(line) lines.push(line);
+  });
+  return lines.slice(0, 8); // 最多 8 行
+}
+
+/* ============================================================
+ * 数据备份与导入
+ * ============================================================ */
+async function exportData(){
+  if(allMoments.length === 0){ toast('还没有天空可以备份'); return; }
+  toast('正在打包备份……');
+  try{
+    const backup = {
+      app: 'skylog',
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      count: allMoments.length,
+      moments: allMoments
+    };
+    const blob = new Blob([JSON.stringify(backup)], { type:'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.download = `我的天空图册_${new Date().toISOString().slice(0,10)}.sky`;
+    link.href = url;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast(`已备份 ${allMoments.length} 片天空`);
+    __log('备份','导出', { count: allMoments.length });
+  }catch(e){
+    __err('备份','失败', e);
+    toast('备份失败：'+e.message);
+  }
+}
+
+async function importData(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  try{
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if(!data.moments || !Array.isArray(data.moments)){ toast('这不是有效的天空备份文件'); return; }
+    if(!confirm(`将导入 ${data.moments.length} 片天空，是否与现有数据合并？\n（取消则覆盖现有数据）`)){
+      await SkyDB.clear();
+      allMoments = [];
+    }
+    let added = 0;
+    for(const m of data.moments){
+      // 去重
+      if(allMoments.find(x => x.id === m.id)) continue;
+      const item = {
+        id: m.id || uid(),
+        type: m.type || 'essay',
+        media: m.media || null,
+        text: m.text || '',
+        time: m.time || new Date().toISOString(),
+        location: m.location || '天空之上',
+        mode: m.mode || classifyMode(new Date(m.time || Date.now()).getHours()),
+        createdAt: m.createdAt || Date.now()
+      };
+      await SkyDB.put(item);
+      allMoments.push(item);
+      added++;
+    }
+    allMoments.sort((a,b) => new Date(b.time) - new Date(a.time));
+    toast(`成功导入 ${added} 片天空`);
+    __log('备份','导入', { added, total: allMoments.length });
+    updateHeroMeta();
+    renderCatCovers();renderCatDetail();
+    renderGallery();
+    renderCalendar();
+  }catch(e){
+    __err('备份','导入失败', e);
+    toast('导入失败：'+e.message);
+  } finally {
+    event.target.value = '';
+  }
+}
+
+/* ============================================================
+ * 事件绑定
+ * ============================================================ */
+document.querySelectorAll('.modal-bg').forEach(m => {
+  m.addEventListener('click', e => { if(e.target === m) m.classList.remove('show'); });
+});
+// 拖拽上传
+const dz = document.getElementById('dropzone');
+['dragover','dragenter'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('drag'); }));
+['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('drag'); }));
+dz.addEventListener('drop', e => {
+  if(e.dataTransfer.files.length){
+    document.getElementById('mediaInput').files = e.dataTransfer.files;
+    handleMedia({ target: { files: e.dataTransfer.files, value:'' } });
+  }
+});
+
+// 启动
+init();
+</script>
+</body>
+</html>
